@@ -1,0 +1,82 @@
+Tecken att använda?
+ | ! # ¤ ~  @ ^ §  
+
+
+Typer:
+
+:i int
+:f float
+:s string
+:a array
+
+
+Variabler:
+
+a = 1
+b = 2
+
+ex:
+a + b # res: 3
+
+Operatorer:
+
++    addition 
+-    subtraktion 
+*    multiplikation
+\    division
+**   power
+\\   heltals-division
+=    tilldelning
+->   konvertering
+.    medlemstillgång
+<    jämförelse
+>    ^
+<=   ^
+>=   ^
+==   ^
+!=   ^
+
+
+Dekoratorer:
+@    variabler (borttaget)
+_    medlemsvariabler
+!    funktioner
+§    klass
+
+
+~i <cond>
+   ...
+   ...
+~ei <cond>
+   ...
+   ...
+~e
+   ...
+   ...
+
+Loopar:
+
+~f <cond> <inc>
+    ...
+    ...
+    
+~w <cond>
+    ...
+    ...
+
+
+Klass/funktions-definition:
+
+§person
+    !i name
+        _name = name
+      
+           
+#Kodexempel:  
+
+p = §person #tilldelning av klass
+
+num :i #tilldelning av "tom" int
+
+n = 5 #dynamisk typning
+
