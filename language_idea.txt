@@ -23,9 +23,9 @@ Operatorer:
 +    addition 
 -    subtraktion 
 *    multiplikation
-\    division
+/    division
 **   power
-\\   heltals-division
+//   heltals-division
 =    tilldelning
 ->   konvertering
 .    medlemstillgång
