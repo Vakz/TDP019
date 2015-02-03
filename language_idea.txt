@@ -1,5 +1,4 @@
-
-Primitives:
+Data types:
 
 :i integer
 :f float
@@ -22,6 +21,7 @@ Operators:
 /    division
 **   power
 //   integer-division
+%    modulo
 =    assignment
 ->   conversion
 .    member-accessor
@@ -41,23 +41,31 @@ _    member-variable
 
 Conditional statements:
 
-~i <cond>   #if
+#if
+~i <cond>
    ...
    ...
-~ei <cond>  #else if
+   
+#else if
+~ei <cond>
    ...
    ...
-~e          #else
+   
+#else
+~e
    ...
    ...
 
 Loops:
+Add functions for looping?
 
-~f <cond> <inc> #for
+#for
+~f <stmt?> <cond> <stmt>
     ...
     ...
-    
-~w <cond>       #while
+
+#while
+~w <cond>
     ...
     ...
 
@@ -69,12 +77,22 @@ Class/function-definition:
     @i name
         _name = name
       
-           
+
 #Examples:  
 
+#class
 p = §person
 
-n = 5 #dynamic typing
+#dynamic typing
+n = 5
 
+#conversion
 s = "123"
-n = s->:i #conversion
+n = s->:i
+
+#function
+@check_even num
+    ~i num % 2 == 0
+        @print "Even"
+    ~e
+        @print "Odd"
