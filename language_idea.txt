@@ -1,82 +1,80 @@
-Tecken att använda?
- | ! # ¤ ~  @ ^ §  
 
+Primitives:
 
-Typer:
-
-:i int
+:i integer
 :f float
 :s string
 :a array
 
 
-Variabler:
+Variables:
 
 a = 1
 b = 2
 
-ex:
 a + b # res: 3
 
-Operatorer:
+Operators:
 
 +    addition 
--    subtraktion 
-*    multiplikation
+-    subtraction
+*    multiplication
 /    division
 **   power
-//   heltals-division
-=    tilldelning
-->   konvertering
-.    medlemstillgång
-<    jämförelse
+//   integer-division
+=    assignment
+->   conversion
+.    member-accessor
+<    comparison
 >    ^
 <=   ^
 >=   ^
 ==   ^
 !=   ^
+!    not
+[ ]  subscript
 
+Decorators:
+_    member-variable
+@    functions
+§    class
 
-Dekoratorer:
-@    variabler (borttaget)
-_    medlemsvariabler
-!    funktioner
-§    klass
+Conditional statements:
 
-
-~i <cond>
+~i <cond>   #if
    ...
    ...
-~ei <cond>
+~ei <cond>  #else if
    ...
    ...
-~e
+~e          #else
    ...
    ...
 
-Loopar:
+Loops:
 
-~f <cond> <inc>
+~f <cond> <inc> #for
     ...
     ...
     
-~w <cond>
+~w <cond>       #while
     ...
     ...
 
 
-Klass/funktions-definition:
+Class/function-definition:
 
 §person
-    !i name
+    #initialize/constructor
+    @i name
         _name = name
       
            
-#Kodexempel:  
+#Examples:  
 
-p = §person #tilldelning av klass
+p = §person
 
-num :i #tilldelning av "tom" int
+n = 5 #dynamic typing
 
-n = 5 #dynamisk typning
-
+s = "123"
+n = s->:i #conversion
