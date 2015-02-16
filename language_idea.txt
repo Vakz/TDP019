@@ -38,7 +38,9 @@ Decorators:
 _    member-variable
 @    functions
 §    class
-<-   return
+
+Return:
+<- <stmt>
 
 Conditional statements:
 
