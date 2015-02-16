@@ -78,6 +78,22 @@ Class/function-definition:
         _name = name
       
 
+Built-in functions:
+
+print       #print
+printl
+
+input       #input
+
+file_open   #returns file-object
+
+.read       #methods for file-object
+.read_all
+.write
+.is_empty
+.close
+    
+
 #Examples:  
 
 #class
