@@ -38,6 +38,7 @@ Decorators:
 _    member-variable
 @    functions
 §    class
+<-   return
 
 Conditional statements:
 
