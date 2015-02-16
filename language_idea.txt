@@ -4,6 +4,7 @@ Data types:
 :f float
 :s string
 :a array
+:h hash
 
 
 Variables:
