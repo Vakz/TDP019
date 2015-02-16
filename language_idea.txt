@@ -2,9 +2,9 @@ Data types:
 
 :i integer
 :f float
-:s string
-:a array
-:h hash
+:s string ""
+:a array []
+:h hash {}
 
 
 Variables:
