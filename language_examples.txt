@@ -30,3 +30,19 @@ a.push(77)
 @pow var exp=2
     var ** exp
     
+@multiples_sum num limit
+    sum :i
+    ~f i :i; i < limit; i += 1
+        ~i i % num == 0
+            sum += i
+    <-sum
+    
+@multiples num limit
+    a :a
+    ~f i :i; i < limit; i += 1
+        ~i i % num == 0
+            a += i
+    <-a
+    
+m_a = @multiples 6 1000
+m_s = @multiples 12 1000
