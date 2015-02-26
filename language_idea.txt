@@ -43,6 +43,10 @@ _    member-variable
 Return:
 <- <stmt>
 
+Comments:
+#       - one line
+#> <#   - start/stop
+
 Conditional statements:
 
 #if
@@ -101,7 +105,7 @@ file_open   #returns file-object
 #Examples:  
 
 #class
-p = §person
+p = person
 
 #dynamic typing
 n = 5
@@ -113,6 +117,18 @@ n = s->:i
 #function
 @check_even num
     ~i num % 2 == 0
-        @print "Even"
+        print "Even"
     ~e
-        @print "Odd"
+        print "Odd"
+        
+    
+#no significant whitespace, start/end code blocks and terminators        
+~w a != 5
+{ 
+    print a; 
+    a += 1;
+}
+
+~w a!=5 { print a; a+=1; }
+
+
