@@ -10,16 +10,20 @@ BNF-GRAMMAR
     | <class_def>
     | <function_def>
     | <return> ';'
-    | continue ';' #TBA
-    | break ';'    #TBA
+    | 'continue' ';' #TBA
+    | 'break' ';'    #TBA
 
 <expr> ::= <arith_expr>
     | <comparison>
+    | <function_call>
+
+<function_call> ::= 
 
 <if_stmt> ::= '~i' <expr> '{' <stmt_list> '}'
     | '~i' <expr> '{' <stmt_list> '}' '~e' '{' <stmt_list> '}'
     | '~i' <expr> '{' <stmt_list> '}' <elseif_list>
-    | '~i' <expr> '{' <stmt_list> '}' <elseif_list> '~e' '{' <stmt_list> '}'
+    # Only this one is necessary?
+    | '~i' <expr> '{' <stmt_list> '}' [<elseif_list>] ['~e' '{' <stmt_list> '}']
 
 <elseif_list> ::= <elseif_list> <elseif>
     | <elseif>
@@ -78,7 +82,7 @@ BNF-GRAMMAR
 
 <hash> ::=
 
-<array> ::= '[' <arg_list> ']'
+<array> ::= '[' [<arg_list>] ']'
 
 <string> ::= '"' /.*/ '"'
 
