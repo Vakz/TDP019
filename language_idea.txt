@@ -1,3 +1,6 @@
+Fredrik Jonsén - frejo105
+Daniel Eriksson - daner045
+
 Data types:
 
 :i integer
@@ -9,10 +12,10 @@ Data types:
 
 Variables:
 
-a = 1
-b = 2
+a = 1;
+b = 2;
 
-a + b # res: 3
+a + b; # res: 3
 
 Operators:
 
@@ -50,76 +53,80 @@ Comments:
 Conditional statements:
 
 #if
-~i <cond>
+~i <cond> {
    ...
    ...
-   
+}   
+
 #else if
-~ei <cond>
+~ei <cond> {
    ...
    ...
-   
+}
+
 #else
-~e
+~e {
    ...
    ...
+}
 
 Loops:
-Add functions for looping?
+
 
 #for
-~f <stmt?> <cond> <stmt>
+~f <stmt?> <cond> <stmt> {
     ...
     ...
+}
 
 #while
-~w <cond>
+~w <cond> {
     ...
     ...
-
+}
 
 Class/function-definition:
 
 §person
     #initialize/constructor
-    @i name
-        _name = name
+    @i(name)
+        _name = name;
       
 
 Built-in functions:
 
-print       #print
-printl
+print();       #print
+printl();
 
-input       #input
+input();       #input
 
-file_open   #returns file-object
+file_open();   #returns file-object
 
-.read       #methods for file-object
-.read_all
-.write
-.is_empty
-.close
+.read();       #methods for file-object
+.read_all();
+.write();
+.is_empty();
+.close();
     
 
 #Examples:  
 
 #class
-p = person
+p = person;
 
 #dynamic typing
-n = 5
+n = 5;
 
 #conversion
-s = "123"
-n = s->:i
+s = "123";
+n = s->:i;
 
 #function
 @check_even num
     ~i num % 2 == 0
-        print "Even"
+        print "Even";
     ~e
-        print "Odd"
+        print "Odd";
         
     
 #no significant whitespace, start/end code blocks and terminators        
