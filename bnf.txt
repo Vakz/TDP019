@@ -1,3 +1,6 @@
+Fredrik Jonsén - frejo105
+Daniel Eriksson - daner045
+
 BNF-GRAMMAR
 
 <begin> ::= <stmt_list>
@@ -10,35 +13,40 @@ BNF-GRAMMAR
     | <class_def>
     | <function_def>
     | <return> ';'
-    | 'continue' ';' #TBA
-    | 'break' ';'    #TBA
+    | '!->' ';'         # continue
+    | '->!' ';'         # break
 
 <expr> ::= <arith_expr>
     | <comparison>
     | <function_call>
-
-<function_call> ::= 
-
-<if_stmt> ::= '~i' <expr> '{' <stmt_list> '}'
-    | '~i' <expr> '{' <stmt_list> '}' '~e' '{' <stmt_list> '}'
-    | '~i' <expr> '{' <stmt_list> '}' <elseif_list>
-    # Only this one is necessary?
-    | '~i' <expr> '{' <stmt_list> '}' [<elseif_list>] ['~e' '{' <stmt_list> '}']
-
-<elseif_list> ::= <elseif_list> <elseif>
-    | <elseif>
-
-<elseif> ::= '~ei' <expr> '{' <stmt_list> '}'
-
-<arg_list> ::= <arg_list> ',' <expr>
-    | <expr>
-
-<param_list> ::= <param_list> ',' <identifier>            #?
     | <identifier>
+    | <type>
+
+<function_call> ::= <identifier> '(' [<arg_list>] ')'
+
+<if_stmt> ::= '~i' <expr> <if_body> [<elseif_list>] ['~e' <if_body>]
+
+<elseif_list> ::= [<elseif_list>] <elseif>
+
+<elseif> ::= '~ei' <expr> <if_body>
+
+<if_body> ::= '{' <stmt_list '}'
+    | <stmt>
+
+<arg_list> ::= <expr> [',' <arg_list>]
+
+<param_list> ::= <identifier>['=' <expr>] [',' <param_list>]
 
 <class_def> ::= '§' <identifier> '{' <stmt_list> '}'      #stmt_list allows for too much?
 
-<function_def> ::= '@' <identifier> '{' <stmt_list> '}'   #stmt_list allows for too much?
+<function_def> ::= '@' <identifier> '(' [<param_list>] ')' '{' <stmt_list> '}'   #stmt_list allows for too much?
+
+<identifier> ::= <identifier>'.'<identifier>
+    | <identifier>'['<identifier>']'
+    | <identifier>'['<type>']'
+    | <name>
+
+<name> ::= /_?[[:alpha:]][\w_]*/
 
 <comp_op> ::= '<'
     | '>'
@@ -65,11 +73,12 @@ BNF-GRAMMAR
     | <term> '**' <factor>
     | <term> '//' <factor>
 
-<factor> ::= 
+<factor> ::= <expr>
+    | <type>
 
 <assignment> ::= <identifier> '=' <expr>
 
-<type_assignment> ::= <identifier> <type>
+<type_assignment> ::= <identifier> <type_dec>
 
 <return> ::= '<-' <expr>
 
@@ -80,11 +89,15 @@ BNF-GRAMMAR
     | <array>
     | <hash>
 
-<hash> ::=
+<hash_arg_list> ::= <hash_arg>[, <hash_arg_list>]
+
+<hash_arg> ::= <identifier'>:'<identifier>
+
+<hash> ::= '{' [<hash_arg_list>] '}'
 
 <array> ::= '[' [<arg_list>] ']'
 
-<string> ::= '"' /.*/ '"'
+<string> ::= /".*"/
 
 <float> ::= Float
     | '-' Float

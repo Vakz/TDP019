@@ -1,48 +1,57 @@
-§MyClass
-    _my_int_variable = 5
-    _my_string_variable = "example"
-    _my_variable :i # Ger variabeln ett default-värde, 0. Tanken med detta är att
-                    # lättare kunna samla variabel-deklarationer
+Fredrik Jonsén - frejo105
+Daniel Eriksson - daner045
+
+Exempelkod:
+
+§MyClass {
+    _my_int_variable = 5;
+    _my_string_variable = "example";
+    _my_variable :i; # Ger variabeln ett default-värde, 0. Tanken med detta är att
+                     # lättare kunna samla variabel-deklarationer
     
-    @i
-        _my_variable = 2
-        
+    @i {
+        _my_variable = 2;
+    }
     
-    @a_function var1 var2 = 3
+    @a_function (var1, var2 = 3) {
         ~i var1 > var2
-            @print var2
+            @print var2;
         ~e
-            @print var1
-            
-    @another_function
+            @print var1;
+    }
+        
+    @another_function() {
         ~f _my_variable < 10 _my_variable += 1
-            @print "Iteration" + _my_variable->:s # Konvertera integer till
-                                                  # sträng och konkatenera
+            @print "Iteration" + _my_variable->:s; # Konvertera integer till
+    }                                              # sträng och konkatenera
+}
+
+a :a;
+a.push(5);
+a.push(77);
+@print(a[1]);
+@print(a.pop);
 
 
-a :a
-a.push(5)
-a.push(77)
-@print a[1]
-@print a.pop
-
-
-@pow var exp=2
-    var ** exp
+@pow (var,exp=2) {
+    var ** exp;
+}
     
-@multiples_sum num limit
-    sum :i
+@multiples_sum(num, limit) {
+    sum :i;
     ~f i :i; i < limit; i += 1
         ~i i % num == 0
-            sum += i
-    <-sum
+            sum += i;
+    <-sum;
+}
     
-@multiples num limit
-    a :a
+@multiples(num, limit) {
+    a :a;
     ~f i :i; i < limit; i += 1
         ~i i % num == 0
-            a += i
-    <-a
-    
-m_a = @multiples 6 1000
-m_s = @multiples 12 1000
+            a += i;
+    <-a;
+}
+
+m_a = @multiples(6,1000);
+m_s = @multiples(12,1000);

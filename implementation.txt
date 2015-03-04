@@ -1,0 +1,8 @@
+Fredrik Jonsén - frejo105
+Daniel Eriksson - daner045
+
+Implementation:
+
+- Använder rdparse med interpretator.
+- Variabler/objekt som ruby-objekt.
+- Se bnf.txt
