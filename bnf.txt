@@ -36,7 +36,7 @@ BNF-GRAMMAR
 
 <elseif> ::= '~ei' <expr> <cond_body>
 
-<for_stmt> ::= '~f' [<assignment ';'] <expr> ';' <expr> <cond_body>
+<for_stmt> ::= '~f' [<assignment> ';'] <expr> ';' <expr> <cond_body>
 
 <while_stmt> ::= '~w' <expr> <cond_body>
 
