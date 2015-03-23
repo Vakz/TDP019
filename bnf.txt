@@ -40,12 +40,16 @@ BNF-GRAMMAR
 
 <while_stmt> ::= '~w' <expr> <cond_body>
 
-<cond_body> ::= '{' <stmt_list '}'
+<cond_body> ::= '{' <stmt_list> '}'
     | <stmt>
 
 <arg_list> ::= <expr> [',' <arg_list>]
 
-<param_list> ::= <identifier>['=' <expr>] [',' <param_list>]
+<param_list> ::= <identifier> [',' <param_list>]
+    | <identifier> ',' <param_def_list>
+    | <param_def_list>
+
+<param_def_list> ::= <identifier> '=' <expr> [',' <param_def_list>]
 
 <class_def> ::= '§' <identifier> '{' <stmt_list> '}'      #stmt_list allows for too much?
 
