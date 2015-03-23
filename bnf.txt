@@ -89,15 +89,15 @@ BNF-GRAMMAR
     | <array>
     | <hash>
 
-<hash_arg_list> ::= <hash_arg>[, <hash_arg_list>]
+<hash_arg_list> ::= <hash_arg>[',' <hash_arg_list>]
 
-<hash_arg> ::= <identifier'>:'<identifier>
+<hash_arg> ::= <identifier>':'<identifier>
 
 <hash> ::= '{' [<hash_arg_list>] '}'
 
 <array> ::= '[' [<arg_list>] ']'
 
-<string> ::= /".*"/
+<string> ::= /"[^"]*"/
 
 <float> ::= Float
     | '-' Float
