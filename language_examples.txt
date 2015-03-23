@@ -21,7 +21,7 @@ Exempelkod:
     }
         
     @another_function() {
-        ~f _my_variable < 10 _my_variable += 1
+        ~f _my_variable < 10; _my_variable += 1
             @print "Iteration" + _my_variable->:s; # Konvertera integer till
     }                                              # sträng och konkatenera
 }

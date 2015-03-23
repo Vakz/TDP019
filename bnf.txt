@@ -10,27 +10,37 @@ BNF-GRAMMAR
               
 <stmt> ::= <expr> ';'
     | <if_stmt>
+    | <for_stmt>
+    | <while_stmt>
     | <class_def>
     | <function_def>
     | <return> ';'
     | '!->' ';'         # continue
     | '->!' ';'         # break
 
-<expr> ::= <arith_expr>
+<expr> ::= <unary_op> <expr>
+    | <expr> <unary_op>
+    | <arith_expr>
     | <comparison>
     | <function_call>
     | <identifier>
     | <type>
+    | <assignment>
+    | '!' <expr>
 
-<function_call> ::= <identifier> '(' [<arg_list>] ')'
+<expr_call> ::= <identifier> '(' [<arg_list>] ')'
 
-<if_stmt> ::= '~i' <expr> <if_body> [<elseif_list>] ['~e' <if_body>]
+<if_stmt> ::= '~i' <expr> <cond_body> [<elseif_list>] ['~e' <cond_body>]
 
 <elseif_list> ::= [<elseif_list>] <elseif>
 
-<elseif> ::= '~ei' <expr> <if_body>
+<elseif> ::= '~ei' <expr> <cond_body>
 
-<if_body> ::= '{' <stmt_list '}'
+<for_stmt> ::= '~f' [<assignment ';'] <expr> ';' <expr> <cond_body>
+
+<while_stmt> ::= '~w' <expr> <cond_body>
+
+<cond_body> ::= '{' <stmt_list '}'
     | <stmt>
 
 <arg_list> ::= <expr> [',' <arg_list>]
@@ -47,6 +57,9 @@ BNF-GRAMMAR
     | <name>
 
 <name> ::= /_?[[:alpha:]][\w_]*/
+
+<unary_op> ::= '++'
+    | '--'
 
 <comp_op> ::= '<'
     | '>'
@@ -67,16 +80,23 @@ BNF-GRAMMAR
     | <arith_expr> '-' <term>
     | <term>
 
-<term> ::= <term> '%' <factor>
-    | <term> '*' <factor>
-    | <term> '/' <factor>
-    | <term> '**' <factor>
-    | <term> '//' <factor>
+<term> ::= <term> <term_op> <factor>
+    | <factor>
 
-<factor> ::= <expr>
+<term_op> ::= '%'
+    | '**'
+    | '//'
+    | '*'
+    | '/'
+
+<factor> ::=  '-' <factor>
+    | <expr>
     | <type>
 
-<assignment> ::= <identifier> '=' <expr>
+<assignment> ::= <expr_assignment>
+    | <type_assignment>
+
+<expr_assignment> ::= <identifier> '=' <expr>
 
 <type_assignment> ::= <identifier> <type_dec>
 
@@ -100,10 +120,8 @@ BNF-GRAMMAR
 <string> ::= /"[^"]*"/
 
 <float> ::= Float
-    | '-' Float
     
 <int> ::= Integer
-    | '-' Integer
     
 <bool> ::= 'true'
     | 'false'
