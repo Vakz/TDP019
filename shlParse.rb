@@ -1,3 +1,4 @@
+# coding: utf-8
 require './rdparse'
 
 class SHLParse
@@ -8,6 +9,7 @@ class SHLParse
             
             token( /\d+\.\d+/ ) { |m| m.to_f }
             token( /\d+/ )      { |m| m.to_i }
+            token( /./ ) { |m| m }
         
             
             #PARSER
@@ -164,8 +166,8 @@ class SHLParse
             
             rule :factor do
                 match( '-', :factor )
-                match( :expr )
                 match( :type )
+                match( :expr )
             end
             
             rule :assignment do
@@ -222,7 +224,7 @@ class SHLParse
             end
             
             rule :int do
-                match( Integer )
+                match( Integer ) { |x| puts x }
             end
             
             rule :bool do 
@@ -231,38 +233,12 @@ class SHLParse
             end
         end
     end
+
+    def parse str
+      @shlp.parse str
+    end
 end
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+sp = SHLParse.new
+sp.parse "5;"
