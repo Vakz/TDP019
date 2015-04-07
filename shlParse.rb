@@ -12,7 +12,7 @@ class SHLParse
             token( /\d+/ )      { |m| m.to_i }	#int
             token( /"[A-Za-z ]*"/ ) { |m| m } 	#strings
             token( /[A-Za-z]+/ ) { |m| m }	  	#identifier
-            token( /./ ) 		{ |m| m }		#symbol
+            token( /./ ) { |m| m }              #symbol
 			
             
             #PARSER
