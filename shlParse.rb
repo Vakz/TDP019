@@ -157,7 +157,7 @@ class SHLParse
             end
             
             rule :term do
-				match( :term, :term_op, :factor )
+                match( :term, :term_op, :factor )
                 match( :factor )
             end
             
