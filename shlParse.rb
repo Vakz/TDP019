@@ -4,15 +4,15 @@ require './rdparse'
 class SHLParse
     def initialize
         @shlp = Parser.new( "shorthand language" ) do
-			@@results = []
+            @@results = []
 			
             #LEXER
-			token( /\s+/ )
-			token( /\d+\.\d+/ ) { |m| m.to_f }	#float
+            token( /\s+/ )
+            token( /\d+\.\d+/ ) { |m| m.to_f }	#float
             token( /\d+/ )      { |m| m.to_i }	#int
-			token( /"[A-Za-z ]*"/ ) { |m| m } 	#strings
+            token( /"[A-Za-z ]*"/ ) { |m| m } 	#strings
             token( /[A-Za-z]+/ ) { |m| m }	  	#identifier
-			token( /./ ) 		{ |m| m }		#symbol
+            token( /./ ) 		{ |m| m }		#symbol
 			
             
             #PARSER
@@ -21,8 +21,8 @@ class SHLParse
             end
             
             rule :stmt_list do
-				match( :stmt, :stmt_list ) { |a,b| @@results << a }
-				match( :stmt ) { |a| @@results << a }
+                match( :stmt, :stmt_list ) { |a,b| @@results << a }
+                match( :stmt ) { |a| @@results << a }
             end
             
             rule :stmt do
@@ -120,7 +120,7 @@ class SHLParse
             
             rule :name do
                 match( /[A-Za-z+]/ )
-				#match( /_?[[:alpha:]][\w_]*/ )
+                #match( /_?[[:alpha:]][\w_]*/ )
             end
             
             rule :unary_op do
@@ -162,9 +162,9 @@ class SHLParse
             end
             
             rule :factor do
-				match( '-', :factor ) { |_,a| -a }
+                match( '-', :factor ) { |_,a| -a }
                 match( :type )
-				#match( :expr )
+                #match( :expr )
             end
  
             rule :assignment do
