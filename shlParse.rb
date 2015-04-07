@@ -11,7 +11,7 @@ class SHLParse
             token( /\d+\.\d+/ ) { |m| m.to_f }	#float
             token( /\d+/ )      { |m| m.to_i }	#int
             token( /"[A-Za-z ]*"/ ) { |m| m } 	#strings
-            token( /[A-Za-z]+/ ) { |m| m }	  	#identifier
+            token( /[A-Za-z]+/ ) { |m| m }      #identifier
             token( /./ ) { |m| m }              #symbol
 			
             
