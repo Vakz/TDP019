@@ -12,15 +12,14 @@ class SHLParse
           token( /[A-Za-z]+/ ) { |m| m }
           token( /./ ) { |m| m }
           
-          
           #PARSER
           start :begin do
-            match( :stmt_list )
+            match( :stmt_list ) { |m| m }
           end
           
           rule :stmt_list do
-            match( :stmt_list, :stmt ) { |_,m| m }
-            match( :stmt )
+            match( :stmt_list, :stmt ) { |_,m| puts "NO"; m }
+            match( :stmt ) { |m| puts "hej"; m }
           end
           
           rule :stmt do
@@ -241,4 +240,4 @@ end
 
 
 sp = SHLParse.new
-sp.parse 'true;'
+sp.parse 'true;false;'
