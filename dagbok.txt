@@ -35,3 +35,8 @@ matchningen (:stmt_list, :stmt), men om man lägger till ett kodblock med en pri
 matchningen ges ingen output, vilken rimligen borde betyda att det inte är den matchningen som görs,
 och vi har därför istället ingen aning alls om vad som händer. Här skulle det har varit rätt bra
 om det fanns någon dokumentation till rdparse, men vi har mailat våran handledare istället.
+
+7/4 -15
+-------
+Efter en väldig massa felsökande kom vi till slut fram till att matchningarna som orsakade problem
+var :comparison under :expr-regeln, samt :expr :factor-regeln.
