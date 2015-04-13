@@ -14,6 +14,7 @@ class SHLParse
       token(/\d+/)      { |m| m.to_i }	# int
       token(/"[A-Za-z ]*"/) { |m| m } 	# strings
       token(/[A-Za-z]+/) { |m| m }      # identifier
+      token(/<=|==|\*\*|\/\/|->|<=|\!=|&&|\|\|/) { |m| m }
       token(/./) { |m| m }              # symbol
 
       # PARSER
@@ -41,13 +42,21 @@ class SHLParse
       rule :expr do
         match(:unary_op, :expr)
         match(:expr, :unary_op)
+        match(:bool_expr)
         match(:comparison)
         match(:arith_expr)
         match(:function_call)
         match(:identifier)
         match(:type)
         match(:assignment)
-        match('!', :expr) { |_a, b| !b }
+        match('!', :expr) { |_, b| !b }
+      end
+
+      rule :bool_expr do
+        match(:bool_expr, '&&', :expr) { |a, _, b| a && b }
+        match(:bool_expr, '||', :expr) { |a, _, b| a || b }
+
+        match(:bool)
       end
 
       rule :expr_call do
@@ -155,8 +164,15 @@ class SHLParse
         match(:term)
       end
 
+      rule :term_op do
+        match('**')
+        match('//')
+        match('*')
+        match('/')
+      end
+
       rule :term do
-        match(:term, :term_op, :factor)
+        match(:term, :term_op, :factor) { |a, op, b| a.send(op, b) }
         match(:factor)
       end
 

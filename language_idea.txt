@@ -19,7 +19,7 @@ a + b; # res: 3
 
 Operators:
 
-+    addition 
++    addition
 -    subtraction
 *    multiplication
 /    division
@@ -35,8 +35,10 @@ Operators:
 >=   ^
 ==   ^
 !=   ^
-!    not
 [ ]  subscript
+!    logical NOT
+&&   logical AND
+||   logical OR
 
 Decorators:
 _    member-variable
@@ -56,7 +58,7 @@ Conditional statements:
 ~i <cond> {
    ...
    ...
-}   
+}
 
 #else if
 ~ei <cond> {
@@ -91,7 +93,7 @@ Class/function-definition:
     #initialize/constructor
     @i(name)
         _name = name;
-      
+
 
 Built-in functions:
 
@@ -107,9 +109,9 @@ file_open();   #returns file-object
 .write();
 .is_empty();
 .close();
-    
 
-#Examples:  
+
+#Examples:
 
 #class
 p = person;
@@ -127,15 +129,13 @@ n = s->:i;
         print "Even";
     ~e
         print "Odd";
-        
-    
-#no significant whitespace, start/end code blocks and terminators        
+
+
+#no significant whitespace, start/end code blocks and terminators
 ~w a != 5
-{ 
-    print a; 
+{
+    print a;
     a += 1;
 }
 
 ~w a!=5 { print a; a+=1; }
-
-
