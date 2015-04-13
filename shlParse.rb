@@ -1,3 +1,4 @@
+#! /usr/bin/ruby
 # coding: utf-8
 require './rdparse'
 
@@ -8,6 +9,7 @@ class SHLParse
 
       # LEXER
       token(/\s+/)
+      token(/#.*$/) # Borde hantera alla en-rads kommentarer
       token(/\d+\.\d+/) { |m| m.to_f }	# float
       token(/\d+/)      { |m| m.to_i }	# int
       token(/"[A-Za-z ]*"/) { |m| m } 	# strings
