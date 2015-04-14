@@ -9,12 +9,12 @@ class SHLParse
 
       # LEXER
       token(/\s+/)
-      token(/#.*$/) # Borde hantera alla en-rads kommentarer
+      # token(/#.*$/) # Borde hantera alla en-rads kommentarer
       token(/\d+\.\d+/) { |m| m.to_f }	# float
       token(/\d+/)      { |m| m.to_i }	# int
       token(/"[A-Za-z ]*"/) { |m| m } 	# strings
       token(/[A-Za-z]+/) { |m| m }      # identifier
-      token(/<=|==|\*\*|\/\/|->|<=|\!=|&&|\|\|/) { |m| m }
+      token(%r{<=|==|\*\*|//|->|>=|\!=|&&|\|\|}) { |m| m }
       token(/./) { |m| m }              # symbol
 
       # PARSER
@@ -165,14 +165,28 @@ class SHLParse
       end
 
       rule :term_op do
-        match('**')
         match('//')
         match('*')
         match('/')
       end
 
       rule :term do
-        match(:term, :term_op, :factor) { |a, op, b| a.send(op, b) }
+        match(:term, :term_op, :pow) do |a, op, b|
+          case op
+          when '*'
+            a * b
+          when '/'
+            t = a.to_f / b
+            t % 1 == 0 ? t.round : t
+          when '//'
+            a / b
+          end
+        end
+        match(:pow)
+      end
+
+      rule :pow do
+        match(:pow, '**', :factor) { |a, _, b| a**b }
         match(:factor)
       end
 
