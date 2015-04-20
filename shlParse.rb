@@ -28,7 +28,7 @@ class SHLParse
       end
 
       rule :stmt do
-        match(:expr, ';') { |a, _b| a }
+        match(:expr, ';') { |a, _| a }
         match(:if_stmt)
         match(:for_stmt)
         match(:while_stmt)
@@ -45,7 +45,7 @@ class SHLParse
         match(:bool_expr)
         match(:comparison)
         match(:arith_expr)
-        match(:function_call)
+        match(:expr_call)
         match(:identifier)
         match(:type)
         match(:assignment)
@@ -61,7 +61,7 @@ class SHLParse
 
       rule :expr_call do
         match(:identifier, '(', :arg_list, ')')
-        match(:identifier, '(', ')')
+        match(:identifier, '(', ')') { |a, _, _| a }
       end
 
       rule :if_stmt do
@@ -124,11 +124,11 @@ class SHLParse
         match(:identifier, '.', :identifier)
         match(:identifier, '[', :identifier, ']')
         match(:identifier, '[', :type, ']')
-        match(:name)
+        match(:name) { |_| 3 }
       end
 
       rule :name do
-        match(/[A-Za-z+]/)
+        match(/[A-Za-z]+/) { |a| a }
         # match( /_?[[:alpha:]][\w_]*/ )
       end
 
@@ -158,9 +158,14 @@ class SHLParse
         match(':h')
       end
 
+      rule :arith_op do
+        match('+')
+        match('-')
+      end
+
       rule :arith_expr do
-        match(:arith_expr, '+', :term) { |a, _, b| a + b }
-        match(:arith_expr, '-', :term) { |a, _, b| a - b }
+        match(:arith_expr, :arith_op, :term) { |a, op, b| a.send(op, b) }
+        match(:term, :arith_op, :term) { |a, op, b| a.send(op, b) }
         match(:term)
       end
 
@@ -192,8 +197,11 @@ class SHLParse
 
       rule :factor do
         match('-', :factor) { |_, a| -a }
+        match('(', :arith_expr, ')') { |_, b, _| b }
         match(:type)
-        # match( :expr )
+        match(:expr_call)
+        match(:identifier)
+
       end
 
       rule :assignment do
