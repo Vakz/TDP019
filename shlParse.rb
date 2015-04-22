@@ -1,11 +1,11 @@
 #! /usr/bin/ruby
 # coding: utf-8
 require './rdparse'
+require './nodes'
 
 class SHLParse
   def initialize
     @shlp = Parser.new('shorthand language') do
-      @@results = []
 
       # LEXER
       token(/\s+/)
@@ -14,17 +14,18 @@ class SHLParse
       token(/\d+/)      { |m| m.to_i }	# int
       token(/"[A-Za-z ]*"/) { |m| m } 	# strings
       token(/[A-Za-z]+/) { |m| m }      # identifier
+      token(/:[ifsah]/) { |m| m } # type assignments
       token(%r{<=|==|\*\*|//|->|>=|\!=|&&|\|\|}) { |m| m }
       token(/./) { |m| m }              # symbol
 
       # PARSER
       start :begin do
-        match(:stmt_list)
+        match(:stmt_list) { |a| SHLProgramNode.new(a) }
       end
 
       rule :stmt_list do
-        match(:stmt, :stmt_list) { |a, _b| @@results << a }
-        match(:stmt) { |a| @@results << a }
+        match(:stmt, :stmt_list) { |a, b| [a].concat(b) }
+        match(:stmt) { |a| [a] }
       end
 
       rule :stmt do
@@ -40,6 +41,8 @@ class SHLParse
       end
 
       rule :expr do
+        match(:assignment)
+        match(:conversion)
         match(:unary_op, :expr)
         match(:expr, :unary_op)
         match(:bool_expr)
@@ -48,8 +51,11 @@ class SHLParse
         match(:expr_call)
         match(:identifier)
         match(:type)
-        match(:assignment)
         match('!', :expr) { |_, b| !b }
+      end
+
+      rule :conversion do
+        match(:identifier, '->', :type_dec) { 3.to_i }
       end
 
       rule :bool_expr do
@@ -112,7 +118,7 @@ class SHLParse
       end
 
       rule :class_def do
-        match('§', '{', :stmt_list, '}')
+        match('§', :identifier, '{', :stmt_list, '}')
       end
 
       rule :function_def do
@@ -124,7 +130,7 @@ class SHLParse
         match(:identifier, '.', :identifier)
         match(:identifier, '[', :identifier, ']')
         match(:identifier, '[', :type, ']')
-        match(:name) { |_| 3 }
+        match(:name) { '3' }
       end
 
       rule :name do
@@ -210,7 +216,7 @@ class SHLParse
       end
 
       rule :expr_assignment do
-        match(:identifier, '=', :expr)
+        match(:identifier, '=', :expr) { |_, _, c| c }
       end
 
       rule :type_assignment do
@@ -228,6 +234,7 @@ class SHLParse
         match(:string)
         match(:array)
         match(:hash)
+        match(:nil)
       end
 
       rule :hash_arg_list do
@@ -258,12 +265,16 @@ class SHLParse
       end
 
       rule :int do
-        match(Integer)
+        match(Integer) { |a| ConstantNode.new(a) }
       end
 
       rule :bool do
-        match('true') { true }
-        match('false') { false }
+        match('true') { ConstantNode.new(true) }
+        match('false') { ConstantNode.new(false) }
+      end
+
+      rule :nil do
+        match('nil') { ConstantNode.new(nil) }
       end
     end
   end
@@ -275,4 +286,5 @@ end
 
 sp = SHLParse.new
 f = File.read 'test_program.shl'
-puts sp.parse f
+program = sp.parse f
+puts program.evaluate

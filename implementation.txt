@@ -6,3 +6,14 @@ Implementation:
 - Använder rdparse med interpretator.
 - Syntaxträd
 - Se bnf.txt
+
+Syntaxträd
+--------------
+Vid parsning skapas en mängd noder; en för varje statement
+
+Scopes
+------
+Ett scope är helt enkelt en klass, som innehåller den nuvarande kontexten,
+exempelvis i en funktion, samt en ordnad lista. Först i listan skulle alltså
+ett Scope-objekt för en klass finnas (om funktionen är en medlemsfunktion) och
+där efter det globala scopet.
