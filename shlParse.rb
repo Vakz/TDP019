@@ -14,7 +14,8 @@ class SHLParse
       token(/\d+/)      { |m| m.to_i }	# int
       token(/"[A-Za-z ]*"/) { |m| m } 	# strings
       token(/[A-Za-z]+/) { |m| m }      # identifier
-      token(/:[ifsah]/) { |m| m } # type assignments
+      token(/:[ifsah]/) { |m| m }       # type assignments
+      token(/~ei|~[iewf]/) { |m| m }     # if / loops
       token(%r{<=|==|\*\*|//|->|>=|\!=|&&|\|\|}) { |m| m }
       token(/./) { |m| m }              # symbol
 
