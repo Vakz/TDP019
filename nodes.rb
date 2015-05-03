@@ -5,20 +5,35 @@ class Scope
     @funcs = {}
   end
 
+  def set_var( name, value )
+    @vars[name] = value
+  end
+
   #recursively get variables through upper scopes if not found
-  def get_var( var )
-    if vars.has_key?( var )
-      result = vars[var]
+  def get_var( name )
+    if vars.has_key?( name )
+      result = vars[name]
     elsif upper_scope != nil
-      result = upper_scope.get_var( var )
+      result = @upper.get_var( name )
     else
       result = nil
 
     result
   end
 
-  def set_var( name, value )
-    @vars[name] = value
+  def add_func( name, node )
+    @funcs[name] = node
+  end
+
+  def get_func( name )
+    if funcs.has_key?( name )
+      result = funcs[name]
+    elsif upper_scope != nil
+      result = @upper.get_func( name )
+    else
+      result = nil
+
+    result
   end
 end
 
@@ -31,6 +46,34 @@ class SHLProgramNode
   def evaluate
     scope = Scope.new
     @statements.each { |s| s.evaluate( scope ) }
+  end
+end
+
+# Node for function definitions stored in a scope.
+class FunctionDefNode
+  def initialize( name, vars, block )
+    @name, @vars, @block = name, vars, block
+  end
+
+  def evaluate( scope )
+    new_scope = Scope.new( scope )
+    @vars.each { |k,v| new_scope.set_var( k, v ) }
+    block.evaluate( new_scope )
+  end
+
+# Node for function calls.
+class FunctionCall
+  def initialize( name )
+    @name = name
+  end
+
+  def evaluate( scope )
+    func = scope.get_func( @name )
+    if func != nil
+      func.evaluate( scope )
+    else
+      #Error?
+    end
   end
 end
 
