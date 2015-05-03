@@ -1,4 +1,6 @@
 class Scope
+  attr_reader :vars #?
+
   def initialize( upper_scope = nil )
     @upper = upper_scope
     @vars = {}
@@ -13,26 +15,28 @@ class Scope
   def get_var( name )
     if vars.has_key?( name )
       result = vars[name]
-    elsif upper_scope != nil
+    elsif @upper != nil
       result = @upper.get_var( name )
     else
       result = nil
-
+    end
     result
   end
 
   def add_func( name, node )
+    #Check builtins first
     @funcs[name] = node
   end
 
   def get_func( name )
+    #Check builtins first
     if funcs.has_key?( name )
       result = funcs[name]
     elsif upper_scope != nil
       result = @upper.get_func( name )
     else
       result = nil
-
+    end
     result
   end
 end
@@ -60,6 +64,7 @@ class FunctionDefNode
     @vars.each { |k,v| new_scope.set_var( k, v ) }
     block.evaluate( new_scope )
   end
+end
 
 # Node for function calls.
 class FunctionCall
@@ -72,7 +77,7 @@ class FunctionCall
     if func != nil
       func.evaluate( scope )
     else
-      #Error?
+      puts "Error: no function found."
     end
   end
 end
@@ -128,8 +133,8 @@ end
 
 # Node for assignment, stores a name and a value (node).
 class AssignmentNode
-  def initialize( name, value )
-    @name, @value = name, value
+  def initialize( var, value )
+    @name, @value = var.name, value
   end
 
   def evaluate( scope )
@@ -143,6 +148,8 @@ end
 
 # Node for getting the value from a variable.
 class VariableNode
+  attr_reader :name
+
   def initialize( name )
     @name = name
   end
@@ -152,7 +159,7 @@ class VariableNode
     if value != nil
       return value
     else
-      #Error?
+      puts "Error: no variable found."
     end
   end
 end

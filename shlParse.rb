@@ -21,16 +21,16 @@ class SHLParse
 
       # PARSER
       start :begin do
-        match(:stmt_list) { |a| SHLProgramNode.new(a) }
+        match(:stmt_list) { |sl| SHLProgramNode.new( sl ) }
       end
 
       rule :stmt_list do
-        match(:stmt, :stmt_list) { |a, b| [a].concat(b) }
-        match(:stmt) { |a| [a] }
+        match(:stmt, :stmt_list) { |s, sl| [s].concat(sl) }
+        match(:stmt) { |s| [s] }
       end
 
       rule :stmt do
-        match(:expr, ';') { |a, _| a }
+        match(:expr, ';') { |s, _| s }
         match(:if_stmt)
         match(:for_stmt)
         match(:while_stmt)
@@ -131,7 +131,7 @@ class SHLParse
         match(:identifier, '.', :identifier)
         match(:identifier, '[', :identifier, ']')
         match(:identifier, '[', :type, ']')
-        match(:name) { '3' }
+        match(:name) { |n| VariableNode.new( n ) }
       end
 
       rule :name do
@@ -154,12 +154,12 @@ class SHLParse
       end
 
       rule :comparison do
-        match(:arith_expr, :comp_op, :arith_expr) { |a, op, b| a.send(op, b) }
+        match(:arith_expr, :comp_op, :arith_expr) { |a, op, b| ComparisonNode.new( a,b,op ) }
       end
 
       rule :type_dec do
-        match(':i')
-        match(':f')
+        match(':i') { ConstantNode.new( 0 ) }
+        match(':f') { ConstantNode.new( 0.0 ) }
         match(':s')
         match(':a')
         match(':h')
@@ -217,11 +217,11 @@ class SHLParse
       end
 
       rule :expr_assignment do
-        match(:identifier, '=', :expr) { |_, _, c| c }
+        match(:identifier, '=', :expr) { |i,_,e| AssignmentNode.new( i, e ) }
       end
 
       rule :type_assignment do
-        match(:identifier, :type_dec)
+        match(:identifier, :type_dec) { |i,td| AssignmentNode.new( i, td ) }
       end
 
       rule :return do
@@ -262,20 +262,20 @@ class SHLParse
       end
 
       rule :float do
-        match(Float)
+        match(Float) { |f| ConstantNode.new( f ) }
       end
 
       rule :int do
-        match(Integer) { |a| ConstantNode.new(a) }
+        match(Integer) { |i| ConstantNode.new( i ) }
       end
 
       rule :bool do
-        match('true') { ConstantNode.new(true) }
-        match('false') { ConstantNode.new(false) }
+        match('true') { ConstantNode.new( true ) }
+        match('false') { ConstantNode.new( false ) }
       end
 
       rule :nil do
-        match('nil') { ConstantNode.new(nil) }
+        match('nil') { ConstantNode.new( nil ) }
       end
     end
   end
@@ -288,4 +288,4 @@ end
 sp = SHLParse.new
 f = File.read 'test_program.shl'
 program = sp.parse f
-puts program.evaluate
+p program.evaluate
