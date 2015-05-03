@@ -115,6 +115,17 @@ class IfNode
   end
 end
 
+# Node for comparisons.
+class ComparisonNode
+  def initialize( lhs, rhs, op )
+    @lhs, @rhs, @op = lhs, rhs, op
+  end
+
+  def evaluate( scope )
+    @lhs.evaluate( scope ).send( @op, @rhs.evaluate( scope ) )
+  end
+end
+
 # Node for assignment, stores a name and a value (node).
 class AssignmentNode
   def initialize( name, value )
