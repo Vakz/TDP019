@@ -1,3 +1,5 @@
+require './builtins'
+
 class Scope
 
   def initialize( upper_scope = nil )
@@ -28,10 +30,9 @@ class Scope
   end
 
   def get_func( name )
-    #Check builtins first
-    if funcs.has_key?( name )
-      result = funcs[name]
-    elsif upper_scope != nil
+    if @funcs.has_key?( name )
+      result = @funcs[name]
+    elsif @upper != nil
       result = @upper.get_func( name )
     else
       result = nil
@@ -52,29 +53,58 @@ class SHLProgramNode
   end
 end
 
-# Node for function definitions stored in a scope.
+# Node for function definition
 class FunctionDefNode
   def initialize( name, vars, block )
     @name, @vars, @block = name, vars, block
   end
 
   def evaluate( scope )
+    scope.add_func( @name, FunctionNode.new( @name, @vars, @block ) )
+  end
+end
+
+# Function node stored in scope
+class FunctionNode
+  def initialize( name, vars, block )
+    @name, @vars, @block = name, vars, block
+  end
+
+  def evaluate( scope, params )
     new_scope = Scope.new( scope )
-    @vars.each { |k,v| new_scope.set_var( k, v ) }
-    block.evaluate( new_scope )
+
+    #deep copy of vars to preserve values.
+    vars_copy = Array.new
+    @vars.each { |e| vars_copy.push(e.dup) }
+
+    #add param values to vars
+    params.each_with_index { |p,i| vars_copy[i][1] = p }
+    #check for :nv
+    vars_copy.each { |v| puts "Error: unassigned parameter" if v[1] == :nv }
+    #add vars as variables to new scope
+    vars_copy.each { |v| new_scope.set_var( v[0], v[1].evaluate( scope ) ) }
+
+    @block.evaluate( new_scope )
   end
 end
 
 # Node for function calls.
-class FunctionCall
-  def initialize( name )
-    @name = name
+class FunctionCallNode
+  def initialize( name, params )
+    @name, @params = name, params
   end
 
   def evaluate( scope )
+    #---"builtin" printline for now
+    if @name == "pl"
+      @params.each { |p| puts p.evaluate( scope ) }
+      return
+    end
+    #----
+
     func = scope.get_func( @name )
     if func != nil
-      func.evaluate( scope )
+      func.evaluate( scope, @params )
     else
       puts "Error: no function found."
     end
@@ -122,6 +152,7 @@ class WhileNode
   end
 end
 
+# Node for an if-statement
 class IfNode
   def initialize( i_cond, i_block, ei_conds = nil, ei_blocks = nil, e_block = nil )
     @i_cond, @i_block = i_cond, i_block
@@ -170,11 +201,7 @@ class AssignmentNode
   end
 
   def evaluate( scope )
-    if @value.is_a?( ConstantNode )
-      scope.set_var( @name, @value.evaluate )
-    else
       scope.set_var( @name, @value.evaluate( scope ) )
-    end
   end
 end
 
@@ -191,7 +218,7 @@ class VariableNode
     if value != nil
       return value
     else
-      puts "Error: no variable found."
+      puts "Error: no variable \"#{@name}\" found."
     end
   end
 end
@@ -202,7 +229,7 @@ class ConstantNode
     @value = value
   end
 
-  def evaluate
+  def evaluate( scope )
     @value
   end
 end

@@ -67,8 +67,8 @@ class SHLParse
       end
 
       rule :expr_call do
-        match(:identifier, '(', :arg_list, ')')
-        match(:identifier, '(', ')') { |a, _, _| a }
+        match(:identifier, '(', :arg_list, ')') { |i,_,al| FunctionCallNode.new( i.name, al )}
+        match(:identifier, '(', ')') { |i| FunctionCallNode.new( i.name, [] ) }
       end
 
       rule :if_stmt do
@@ -102,20 +102,20 @@ class SHLParse
       end
 
       rule :arg_list do
-        match(:expr, ',', :arg_list)
-        match(:expr)
+        match(:expr, ',', :arg_list) { |e,_,al| [e].concat(al) }
+        match(:expr) { |e| [e] }
       end
 
       rule :param_list do
-        match(:identifier, ',', :param_def_list)
-        match(:identifier, ',', :param_list)
+        match(:identifier, ',', :param_def_list) { |i,_,pdl| [[i.name,:nv]].concat(pdl) }
+        match(:identifier, ',', :param_list) { |i,_,pl| [[i.name,:nv]].concat(pl) }
         match(:param_def_list)
-        match(:identifier)
+        match(:identifier) { |i| [[i.name,:nv]] }
       end
 
       rule :param_def_list do
-        match(:identifier, '=', :expr, ',', :param_def_list)
-        match(:identifier, '=', :expr)
+        match(:identifier, '=', :expr, ',', :param_def_list) { |i,_,e,_,pdl| [[i.name,e]].concat(pdl) }
+        match(:identifier, '=', :expr) { |i,_,e| [[i.name,e]] }
       end
 
       rule :class_def do
@@ -123,8 +123,12 @@ class SHLParse
       end
 
       rule :function_def do
-        match('@', :identifier, '(', :param_list, ')', '{', :stmt_list, '}')
-        match('@', :identifier, '(', ')', '{', :stmt_list, '}')
+        match('@', :identifier, '(', :param_list, ')', '{', :stmt_list, '}') do |_,i,_,pl,_,_,sl|
+          FunctionDefNode.new( i.name, pl, BlockNode.new( sl ) )
+        end
+        match('@', :identifier, '(', ')', '{', :stmt_list, '}') do |_,i,_,_,_,sl|
+          FunctionDefNode.new( i.name, [], BlockNode.new( sl ) )
+        end
       end
 
       rule :identifier do
@@ -288,4 +292,4 @@ end
 sp = SHLParse.new
 f = File.read 'test_program.shl'
 program = sp.parse f
-p program.evaluate
+program.evaluate
