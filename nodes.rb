@@ -1,5 +1,4 @@
 class Scope
-  attr_reader :vars #?
 
   def initialize( upper_scope = nil )
     @upper = upper_scope
@@ -13,8 +12,8 @@ class Scope
 
   #recursively get variables through upper scopes if not found
   def get_var( name )
-    if vars.has_key?( name )
-      result = vars[name]
+    if @vars.has_key?( name )
+      result = @vars[name]
     elsif @upper != nil
       result = @upper.get_var( name )
     else
@@ -87,6 +86,39 @@ class BlockNode < SHLProgramNode
   def evaluate( scope )
     new_scope = Scope.new( scope )
     @statements.each { |s| s.evaluate( new_scope ) }
+  end
+end
+
+# Node for a for loop.
+class ForNode
+  def initialize( comp, inc, block, assign = nil )
+    @comp, @inc, @block, @assign = comp, inc, block, assign
+  end
+
+  def evaluate( scope )
+    if assign != nil
+      assign.each { |k,v| scope.set_var( k, v ) }
+    end
+
+    while( @comp.evaluate( scope ) )
+      new_scope = Scope.new( scope )
+      @block.evaluate( new_scope )
+      @inc.evaluate( scope )
+    end
+  end
+end
+
+# Node for a while loop.
+class WhileNode
+  def initialize( comp, block )
+    @comp, @block = comp, block
+  end
+
+  def evaluate( scope )
+    while @comp.evaluate( scope )
+      new_scope = Scope.new( scope )
+      @block.evaluate( new_scope )
+    end
   end
 end
 
