@@ -223,7 +223,21 @@ class VariableNode
   end
 end
 
-# Representing a constant, such as the literal 2.
+
+# Node representing an array.
+class ArrayNode
+  def initialize( array )
+    @array = array
+  end
+
+  def evaluate( scope )
+    return_array = []
+    @array.each { |e| return_array << e.evaluate( scope ) }
+    return_array
+  end
+end
+
+# Node representing a constant.
 class ConstantNode
   def initialize( value )
     @value = value

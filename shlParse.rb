@@ -16,7 +16,7 @@ class SHLParse
       token(/[A-Za-z]+/) { |m| m }      # identifier
       token(/:[ifsah]/) { |m| m }       # type assignments
       token(/~ei|~[iewf]/) { |m| m }     # if / loops
-      token(%r{<=|==|\*\*|//|->|>=|\!=|&&|\|\|}) { |m| m }
+      token(/\*\*|\/\/|->|&&|\|\|/) { |m| m }
       token(/./) { |m| m }              # symbol
 
       # PARSER
@@ -140,7 +140,6 @@ class SHLParse
 
       rule :name do
         match(/[A-Za-z]+/) { |a| a }
-        # match( /_?[[:alpha:]][\w_]*/ )
       end
 
       rule :unary_op do
@@ -149,12 +148,12 @@ class SHLParse
       end
 
       rule :comp_op do
+        match('=','=') { '==' }
+        match('<','=') { '<=' }
+        match('>','=') { '>=' }
+        match('!','=') { '!=' }
         match('<')
         match('>')
-        match('<=')
-        match('>=')
-        match('==')
-        match('!=')
       end
 
       rule :comparison do
@@ -257,12 +256,12 @@ class SHLParse
       end
 
       rule :array do
-        match('[', :arg_list, ']')
-        match('[', ']')
+        match('[', :arg_list, ']') { |_,al| ArrayNode.new( al ) }
+        match('[', ']') { ArrayNode.new( Array.new )}
       end
 
       rule :string do
-        match(/"[A-Za-z ]*"/)
+        match(/"([A-Za-z ]*)"/) { |s| ConstantNode.new( s ) }
       end
 
       rule :float do
