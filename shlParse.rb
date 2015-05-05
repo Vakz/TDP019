@@ -42,6 +42,7 @@ class SHLParse
       end
 
       rule :expr do
+        match('(', :expr, ')')
         match(:assignment)
         match(:conversion)
         match(:unary_op, :expr)
@@ -171,6 +172,7 @@ class SHLParse
       end
 
       rule :arith_expr do
+        match('(', :arith_expr, ')')
         match(:arith_expr, :arith_op, :term) { |a, op, b| a.send(op, b) }
         match(:term, :arith_op, :term) { |a, op, b| a.send(op, b) }
         match(:term)

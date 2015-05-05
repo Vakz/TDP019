@@ -102,7 +102,7 @@ class IfNode
       return
     end
 
-    if ei_conds != nil
+    if ei_conds.nil?
       ei_conds.each_with_index do |c,i|
         if c.evaluate( scope )
           ei_blocks[i].evaluate( scope )
@@ -111,7 +111,7 @@ class IfNode
       end
     end
 
-    if e_block != nil
+    if e_block.nil?
       e_block.evaluate( scope )
       return
     end
