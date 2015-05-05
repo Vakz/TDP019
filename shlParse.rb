@@ -2,6 +2,7 @@
 # coding: utf-8
 require './rdparse'
 require './nodes'
+require './helpers'
 
 class SHLParse
   def initialize
@@ -15,7 +16,8 @@ class SHLParse
       token(/"[A-Za-z ]*"/) { |m| m } 	# strings
       token(/[A-Za-z]+/) { |m| m }      # identifier
       token(/:[ifsah]/) { |m| m }       # type assignments
-      token(/~ei|~[iewf]/) { |m| m }     # if / loops
+      token(/~ei/) { |m| m }
+      token(/~[iewf]/) { |m| m }     # if / loops
       token(/(==|<=|>=|!=|\*\*|\/\/|->|&&|\|\|)/) { |m| m }
       token(/./) { |m| m }              # symbol
 
@@ -68,24 +70,36 @@ class SHLParse
       end
 
       rule :expr_call do
-        match(:identifier, '(', :arg_list, ')') { |i,_,al| FunctionCallNode.new( i.name, al )}
+        match(:identifier, '(', :arg_list, ')') { |i, _, al| FunctionCallNode.new( i.name, al )}
         match(:identifier, '(', ')') { |i| FunctionCallNode.new( i.name, [] ) }
       end
 
       rule :if_stmt do
-        match('~i', :expr, :cond_body, :elseif_list,  '~e', :cond_body)
-        match('~i', :expr, :cond_body, :elseif_list)
-        match('~i', :expr, :cond_body, '~e', :cond_body)
-        match('~i', :expr, :cond_body)
+        match('~i', :expr, :cond_body, :elseif_list,  '~e', :cond_body) \
+        do |_, i_cond, i_body, elseifs, _, e_body|
+          if_statement_handler(i_body, i_cond, elseifs, e_body)
+        end
+
+        match('~i', :expr, :cond_body, :elseif_list) \
+        do |_, i_cond, i_body, elseifs|
+          if_statement_handler(i_body, i_cond, elseifs)
+        end
+
+        match('~i', :expr, :cond_body, '~e', :cond_body) \
+        do |_, i_cond, i_body, _, e_body|
+          if_statement_handler(i_body, i_cond, [], e_body)
+        end
+
+        match('~i', :expr, :cond_body) { |_, c, b| if_statement_handler(b, c) }
       end
 
       rule :elseif_list do
-        match(:elseif_list, :elseif)
-        match(:elseif)
+        match(:elseif_list, :elseif) { |list, ei| ei.concat(list) }
+        match(:elseif) { |a| [a] }
       end
 
       rule :elseif do
-        match('~ei', :expr, :cond_body)
+        match('~ei', :expr, :cond_body) { |_, c, b| IfBlock.new(b, c) }
       end
 
       rule :for_stmt do
@@ -98,8 +112,8 @@ class SHLParse
       end
 
       rule :cond_body do
-        match('{', :stmt_list, '}')
-        match(:stmt)
+        match('{', :stmt_list, '}') { |_, s, _| s }
+        match(:stmt) { |x| [x] }
       end
 
       rule :arg_list do

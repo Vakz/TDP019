@@ -73,15 +73,15 @@ class FunctionNode
   def evaluate( scope, params )
     new_scope = Scope.new( scope )
 
-    #deep copy of vars to preserve values.
+    # deep copy of vars to preserve values.
     vars_copy = Array.new
     @vars.each { |e| vars_copy.push(e.dup) }
 
-    #add param values to vars
+    # add param values to vars
     params.each_with_index { |p,i| vars_copy[i][1] = p }
-    #check for :nv
-    vars_copy.each { |v| puts "Error: unassigned parameter" if v[1] == :nv }
-    #add vars as variables to new scope
+    # check for :nv
+    vars_copy.each { |v| puts 'Error: unassigned parameter' if v[1] == :nv }
+    # add vars as variables to new scope
     vars_copy.each { |v| new_scope.set_var( v[0], v[1].evaluate( scope ) ) }
 
     @block.evaluate( new_scope )
@@ -126,9 +126,7 @@ class ForNode
   end
 
   def evaluate( scope )
-    if assign != nil
-      assign.each { |k,v| scope.set_var( k, v ) }
-    end
+    assign.nil? && assign.each { |k, v| scope.set_var(k, v) }
 
     while( @comp.evaluate( scope ) )
       new_scope = Scope.new( scope )
@@ -154,32 +152,43 @@ end
 
 # Node for an if-statement
 class IfNode
-  def initialize( i_cond, i_block, ei_conds = nil, ei_blocks = nil, e_block = nil )
-    @i_cond, @i_block = i_cond, i_block
-    @ei_conds, @ei_blocks, @e_block = ei_conds, ei_blocks, e_block
+  def initialize(i_block, ei_blocks = [], e_block = nil)
+    @i_block = i_block
+    @ei_blocks, @e_block = ei_blocks, e_block
   end
 
-  def evaluate( scope )
-    if i_cond.evaluate( scope )
-      i_block.evaluate( scope )
-      return
-    end
+  def evaluate(scope)
+    return @i_block.evaluate(scope) if @i_block.true?(scope)
 
-    if ei_conds.nil?
-      ei_conds.each_with_index do |c,i|
-        if c.evaluate( scope )
-          ei_blocks[i].evaluate( scope )
-          return
-        end
-      end
-    end
+    l = -> { !@e_block.nil? && @e_block.evaluate(scope) }
+    @ei_blocks.detect(l) { |ei| ei.true?(scope) && ei.evaluate(scope) }
+  end
+end
 
-    if e_block.nil?
-      e_block.evaluate( scope )
-      return
-    end
+# Holds the condition and the body of an ~i/~ei/~e
+class IfBlock
+  def initialize(body, cond = ConstantNode.new(true))
+    @body = body
+    @cond = cond
+  end
 
-    return
+  def evaluate(scope)
+    @body.each { |x| x.evaluate scope }
+  end
+
+  def true?(scope)
+    @cond.evaluate scope
+  end
+end
+
+# Holds an expression which should evaluate to true or false
+class ConditionNode
+  def initialize(cond)
+    @cond = cond
+  end
+
+  def evaluate (scope)
+    @cond.evaluate scope
   end
 end
 
@@ -201,7 +210,7 @@ class AssignmentNode
   end
 
   def evaluate( scope )
-      scope.set_var( @name, @value.evaluate( scope ) )
+    scope.set_var( @name, @value.evaluate( scope ) )
   end
 end
 
