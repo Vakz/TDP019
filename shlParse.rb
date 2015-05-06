@@ -16,8 +16,8 @@ class SHLParse
       token(/"[A-Za-z ]*"/) { |m| m } 	# strings
       token(/[A-Za-z]+/) { |m| m }      # identifier
       token(/:[ifsah]/) { |m| m }       # type assignments
-      token(/(~ei|~[iewf])/) { |m| m }  # if / loops
-      token(/(==|<=|>=|!=|\*\*|\/\/|->|&&|\|\|)/) { |m| m }
+      token(/~ei|~[iewf]/) { |m| m }  # if / loops
+      token(/==|<=|>=|!=|\*\*|\/\/|->|&&|\|\|/) { |m| m }
       token(/./) { |m| m }              # symbol
 
       # PARSER
