@@ -10,14 +10,13 @@ class SHLParse
 
       # LEXER
       token(/\s+/)
-      # token(/#.*$/) # Borde hantera alla en-rads kommentarer
+      token(/#.*$/) # Borde hantera alla en-rads kommentarer
       token(/\d+\.\d+/) { |m| m.to_f }	# float
       token(/\d+/)      { |m| m.to_i }	# int
       token(/"[A-Za-z ]*"/) { |m| m } 	# strings
       token(/[A-Za-z]+/) { |m| m }      # identifier
       token(/:[ifsah]/) { |m| m }       # type assignments
-      token(/~ei/) { |m| m }
-      token(/~[iewf]/) { |m| m }     # if / loops
+      token(/(~ei|~[iewf])/) { |m| m }  # if / loops
       token(/(==|<=|>=|!=|\*\*|\/\/|->|&&|\|\|)/) { |m| m }
       token(/./) { |m| m }              # symbol
 
@@ -167,7 +166,6 @@ class SHLParse
         match('<=')
         match('>=')
         match('!=')
-        match('==')
         match('<')
         match('>')
       end
@@ -300,6 +298,14 @@ class SHLParse
     end
   end
 
+  def log(state = true)
+    if state
+      @shlp.logger.level = Logger::DEBUG
+    else
+      @shlp.logger.level = Logger::WARN
+    end
+  end
+
   def parse(str)
     @shlp.parse str
   end
@@ -307,5 +313,6 @@ end
 
 sp = SHLParse.new
 f = File.read 'test_program.shl'
+sp.log(false)
 program = sp.parse f
 program.evaluate
