@@ -203,6 +203,23 @@ class ComparisonNode
   end
 end
 
+# Node for arithmetic operations.
+class ArithmeticNode
+  def initialize( lhs, rhs, op )
+    @lhs, @rhs, @op = lhs, rhs, op
+  end
+
+  def evaluate( scope )
+    if @op == '/'
+      @lhs.evaluate( scope ).to_f / @rhs.evaluate( scope ).to_f
+    elsif @op == '//'
+      @lhs.evaluate( scope )/ @rhs.evaluate( scope )
+    else
+      @lhs.evaluate( scope ).send( @op, @rhs.evaluate( scope ) )
+    end
+  end
+end
+
 # Node for assignment, stores a name and a value (node).
 class AssignmentNode
   def initialize( var, value )
@@ -229,6 +246,17 @@ class VariableNode
     else
       puts "Error: no variable \"#{@name}\" found."
     end
+  end
+end
+
+# Node for a hash.
+class HashNode
+  def initialize( hash )
+    @hash = hash
+  end
+
+  def evaluate( scope )
+    @hash
   end
 end
 
