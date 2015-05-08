@@ -64,7 +64,6 @@ class SHLParse
       rule :bool_expr do
         match(:bool_expr, '&&', :expr) { |a, _, b| a && b }
         match(:bool_expr, '||', :expr) { |a, _, b| a || b }
-
         match(:bool)
       end
 
@@ -136,6 +135,7 @@ class SHLParse
         match('§', :identifier, '{', :stmt_list, '}')
       end
 
+      # TODO: Add possibility to create an empty function? Not currently in BNF
       rule :function_def do
         match('@', :identifier, '(', :param_list, ')', '{', :stmt_list, '}') do |_,i,_,pl,_,_,sl|
           FunctionDefNode.new( i.name, pl, BlockNode.new( sl ) )
@@ -153,7 +153,7 @@ class SHLParse
       end
 
       rule :name do
-        match(/[A-Za-z]+/) { |a| a }
+        match(/[\wÅÄÖåäö][\w\d_åäöÅÄÖ]*/) { |a| a }
       end
 
       rule :unary_op do
@@ -244,6 +244,7 @@ class SHLParse
 
       rule :return do
         match('<-', :expr)
+        match('<-')
       end
 
       rule :type do
@@ -276,7 +277,7 @@ class SHLParse
       end
 
       rule :string do
-        match(/"([A-Za-z ]*)"/) { |s| ConstantNode.new( s ) }
+        match(/"[^"]*"/) { |s| ConstantNode.new( s ) }
       end
 
       rule :float do
