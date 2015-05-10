@@ -13,8 +13,8 @@ class SHLParse
       token(/#.*$/) # Borde hantera alla en-rads kommentarer
       token(/\d+\.\d+/) { |m| m.to_f }	# float
       token(/\d+/)      { |m| m.to_i }	# int
-      token(/"[A-Za-z ]*"/) { |m| m } 	# strings
-      token(/[A-Za-z]+/) { |m| m }      # identifier
+      token(/"[^"]*"/) { |m| m } 	# strings
+      token(/[\wÅÄÖåäö][\w\d_åäöÅÄÖ]*/) { |m| m } # identifiers och nyckelord
       token(/:[ifsah]/) { |m| m }       # type assignments
       token(/~ei|~[iewf]/) { |m| m }  # if / loops
       token(/==|<=|>=|!=|\*\*|\/\/|->|&&|\|\|/) { |m| m }
@@ -177,9 +177,9 @@ class SHLParse
       rule :type_dec do
         match(':i') { ConstantNode.new( 0 ) }
         match(':f') { ConstantNode.new( 0.0 ) }
-        match(':s')
-        match(':a')
-        match(':h')
+        match(':s') { ConstantNode.new('') }
+        match(':a') { ConstantNode.new([]) }
+        match(':h') { ConstantNode.new({}) }
       end
 
       rule :arith_op do
@@ -277,7 +277,8 @@ class SHLParse
       end
 
       rule :string do
-        match(/"[^"]*"/) { |s| ConstantNode.new( s ) }
+        # Remove quotes around string
+        match(/"[^"]*"/) { |s| ConstantNode.new(s[1, s.length - 2]) }
       end
 
       rule :float do
@@ -313,7 +314,7 @@ class SHLParse
 end
 
 sp = SHLParse.new
-f = File.read 'test_program.shl'
+f = File.read ARGV[0].nil? ? 'test_program.shl' : ARGV[0]
 sp.log(false)
 program = sp.parse f
 program.evaluate

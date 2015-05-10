@@ -40,11 +40,11 @@ BNF-GRAMMAR
 
 <if_stmt> ::= '~i' <expr> <cond_body> [<elseif_list>] [~e <cond_body>]
 
-<elseif_list> ::= [elseif_list] <elseif>
+<elseif_list> ::= [<elseif_list>] <elseif>
 
 <elseif> ::= '~ei' <expr> <cond_body>
 
-<for_stmt> ::= '~f' [<assignment ';'] <expr> ';' <expr> <cond_body>
+<for_stmt> ::= '~f' [<assignment> ';'] <expr> ';' <expr> <cond_body>
 
 <while_stmt> ::= '~w' <expr> <cond_body>
 
@@ -61,7 +61,7 @@ BNF-GRAMMAR
 
 <class_def> ::= '§' <identifier> { <stmt_list> }
 
-<function_def> ::= '@' <identifier> '(' [param_list] ')' '{' <stmt_list> '}'
+<function_def> ::= '@' <identifier> '(' [<param_list>] ')' '{' <stmt_list> '}'
 
 <identifier> ::= <identifier> '.' <identifier>
                | <identifier> '[' <identifier> | <type> ']'
