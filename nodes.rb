@@ -151,7 +151,7 @@ class WhileNode
 end
 
 # Node for an if-statement
-class IfNode
+class ConditionalNode
   def initialize(i_block, ei_blocks = [], e_block = nil)
     @i_block = i_block
     @ei_blocks, @e_block = ei_blocks, e_block
@@ -166,7 +166,7 @@ class IfNode
 end
 
 # Holds the condition and the body of an ~i/~ei/~e
-class IfBlock
+class IfNode
   def initialize(body, cond = ConstantNode.new(true))
     @body = body
     @cond = cond

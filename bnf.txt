@@ -75,7 +75,7 @@ BNF-GRAMMAR
 
 <comparison> ::= <arith_expr> <comp_op> <arith_expr>
 
-<type_dec> ::= /:[ifsah]/
+<type_dec> ::= /:[ifsahb]/
 
 <arith_op> ::= '+' | '-'
 

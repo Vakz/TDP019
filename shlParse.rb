@@ -15,7 +15,7 @@ class SHLParse
       token(/\d+/)      { |m| m.to_i }	# int
       token(/"[^"]*"/) { |m| m } 	# strings
       token(/[\wÅÄÖåäö][\w\d_åäöÅÄÖ]*/) { |m| m } # identifiers och nyckelord
-      token(/:[ifsah]/) { |m| m }       # type assignments
+      token(/:[ifsahb]/) { |m| m }       # type assignments
       token(/~ei|~[iewf]/) { |m| m }  # if / loops
       token(/==|<=|>=|!=|\*\*|\/\/|->|&&|\|\|/) { |m| m }
       token(/./) { |m| m }              # symbol
@@ -180,6 +180,7 @@ class SHLParse
         match(':s') { ConstantNode.new('') }
         match(':a') { ConstantNode.new([]) }
         match(':h') { ConstantNode.new({}) }
+        match(':b') { ConstantNode.new(false) }
       end
 
       rule :arith_op do
@@ -201,6 +202,7 @@ class SHLParse
       end
 
       rule :term do
+        # Temporär lösning, ska ersättas med noder
         match(:term, :term_op, :pow) do |a, op, b|
           case op
           when '*'
