@@ -46,7 +46,7 @@ BNF-GRAMMAR
 
 <for_stmt> ::= '~f' [<assignment> ';'] <expr> ';' <expr> <cond_body>
 
-<while_stmt> ::= '~w' <expr> <cond_body>
+<while_stmt> ::= '~w' [<expr>] <cond_body>
 
 <cond_body> ::= '{' <stmt_list '}'
               | <stmt>
@@ -100,7 +100,7 @@ BNF-GRAMMAR
 
 <assignment> ::= <expr_assignment> | <type_assignment>
 
-<expr_assignment> ::= <identifier> '=' <expr>
+<expr_assignment> ::= ['^']<identifier> '=' <expr>
 
 <type_assignment> ::= <identifier> <type_dec>
 

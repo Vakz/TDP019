@@ -8,11 +8,16 @@ class Scope
     @funcs = {}
   end
 
-  def set_var( name, value )
-    @vars[name] = value
+  def set_var(name, value, outer = false)
+    if !outer then return @vars[name] = value
+    elsif @upper.key?(name)
+      return @upper.set_var(name, value)
+    else
+      return @upper.set_var(name, value, true)
+    end
   end
 
-  #recursively get variables through upper scopes if not found
+  # recursively get variables through upper scopes if not found
   def get_var( name )
     if @vars.has_key?( name )
       result = @vars[name]
@@ -22,6 +27,10 @@ class Scope
       result = nil
     end
     result
+  end
+
+  def key?(name)
+    @vars.key? name
   end
 
   def add_func( name, node )
@@ -50,6 +59,14 @@ class SHLProgramNode
   def evaluate
     scope = Scope.new
     @statements.each { |s| s.evaluate( scope ) }
+  end
+end
+
+# Node for a block of code within brackets.
+class BlockNode < SHLProgramNode
+  def evaluate( scope )
+    new_scope = Scope.new( scope )
+    @statements.each { |s| s.evaluate( new_scope ) }
   end
 end
 
@@ -111,13 +128,7 @@ class FunctionCallNode
   end
 end
 
-# Node for a block of code within brackets.
-class BlockNode < SHLProgramNode
-  def evaluate( scope )
-    new_scope = Scope.new( scope )
-    @statements.each { |s| s.evaluate( new_scope ) }
-  end
-end
+
 
 # Node for a for loop.
 class ForNode
@@ -126,9 +137,9 @@ class ForNode
   end
 
   def evaluate( scope )
-    assign.nil? && assign.each { |k, v| scope.set_var(k, v) }
+    !@assign.nil? && @assign.evaluate(scope)
 
-    while( @comp.evaluate( scope ) )
+    while @comp.evaluate(scope)
       new_scope = Scope.new( scope )
       @block.evaluate( new_scope )
       @inc.evaluate( scope )
@@ -173,7 +184,7 @@ class IfNode
   end
 
   def evaluate(scope)
-    @body.each { |x| x.evaluate scope }
+    @body.evaluate scope
   end
 
   def true?(scope)
@@ -209,25 +220,28 @@ class ArithmeticNode
     @lhs, @rhs, @op = lhs, rhs, op
   end
 
-  def evaluate( scope )
+  def evaluate(scope)
+    lhs, rhs = @lhs.evaluate(scope), @rhs.evaluate(scope)
     if @op == '/'
-      @lhs.evaluate( scope ).to_f / @rhs.evaluate( scope ).to_f
+      lhs.to_f / rhs.to_f
     elsif @op == '//'
-      @lhs.evaluate( scope )/ @rhs.evaluate( scope )
+      lhs / rhs
+    elsif @op == '**'
+      lhs**rhs
     else
-      @lhs.evaluate( scope ).send( @op, @rhs.evaluate( scope ) )
+      lhs.send(@op, rhs)
     end
   end
 end
 
 # Node for assignment, stores a name and a value (node).
 class AssignmentNode
-  def initialize( var, value )
-    @name, @value = var.name, value
+  def initialize(var, value, outer = false)
+    @name, @value, @outer = var.name, value, outer
   end
 
-  def evaluate( scope )
-    scope.set_var( @name, @value.evaluate( scope ) )
+  def evaluate(scope)
+    scope.set_var(@name, @value.evaluate(scope), @outer)
   end
 end
 

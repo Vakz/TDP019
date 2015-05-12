@@ -97,16 +97,53 @@ class SHLParse
       end
 
       rule :elseif do
-        match('~ei', :expr, :cond_body) { |_, c, b| IfBlock.new(b, c) }
+        match('~ei', :expr, :cond_body) do |_, c, b|
+          IfBlock.new(b, BlockNode.new(c))
+        end
       end
 
       rule :for_stmt do
-        match('~f', :assignment, ';', :expr, ';', :expr, :cond_body)
-        match('~f', :expr, ';', :expr, :cond_body)
+        # No version with only assignment exists, as it is impossible
+        # to tell whether an assignment is meant to be just an assigment
+        # or the condition
+
+        # All specified
+        match('~f', :assignment, ';', :expr, ';', :expr, :cond_body) \
+        do |_, a, _, c, _, i, body|
+          for_statement_handler(body, assignment: a, cond: c, inc: i)
+        end
+        # Assignment and Condition specified
+        match('~f', :assignment, ';', :expr, :cond_body) do
+          |_, a, _, c, body|
+          puts "here"
+          for_statement_handler(body, assignment: a, cond: c)
+        end
+        # Condition and Incement specified
+        match('~f', :expr, ';', :expr, :cond_body) do |_, c, _, i, b|
+          for_statement_handler(b, cond: c, inc: i)
+        end
+        # Assignment and Incement specified
+        match('~f', :assignment, ';', ';', :expr, :cond_body) do
+          |_, a, _, _, i, body|
+          for_statement_handler(body, assignment: a, inc: i)
+        end
+        # Condition specified
+        match('~f', :expr, :cond_body) do |_, c, body|
+          for_statement_handler(body, cond: c)
+        end
+        # None specified
+        match('~f', :cond_body) do |_, body|
+          for_statement_handler(body)
+        end
       end
 
       rule :while_stmt do
-        match('~w', :expr, :cond_body)
+        match('~w', :expr, :cond_body) do |_, e, c|
+          WhileNode.new(e, BlockNode.new(c))
+        end
+        match('~w', :cond_body) do |_, c|
+          WhileNode.new(ConstantNode.new(true), BlockNode.new(c))
+        end
       end
 
       rule :cond_body do
@@ -190,8 +227,8 @@ class SHLParse
 
       rule :arith_expr do
         match('(', :arith_expr, ')')
-        match(:arith_expr, :arith_op, :term) { |a, op, b| a.send(op, b) }
-        match(:term, :arith_op, :term) { |a, op, b| a.send(op, b) }
+        match(:arith_expr, :arith_op, :term) { |a, op, b| ArithmeticNode.new(a, b, op) }
+        match(:term, :arith_op, :term) { |a, op, b| ArithmeticNode.new(a, b, op) }
         match(:term)
       end
 
@@ -202,23 +239,14 @@ class SHLParse
       end
 
       rule :term do
-        # Temporär lösning, ska ersättas med noder
         match(:term, :term_op, :pow) do |a, op, b|
-          case op
-          when '*'
-            a * b
-          when '/'
-            t = a.to_f / b
-            t % 1 == 0 ? t.round : t
-          when '//'
-            a / b
-          end
+          ArithmeticNode.new(a, b, op)
         end
         match(:pow)
       end
 
       rule :pow do
-        match(:pow, '**', :factor) { |a, _, b| a**b }
+        match(:pow, '**', :factor) { |a, _, b| ArithmeticNode.new(a, b, '**') }
         match(:factor)
       end
 
@@ -237,11 +265,14 @@ class SHLParse
       end
 
       rule :expr_assignment do
-        match(:identifier, '=', :expr) { |i,_,e| AssignmentNode.new( i, e ) }
+        match(:identifier, '=', :expr) { |i, _, e| AssignmentNode.new(i, e) }
+        match('^', :identifier, '=', :expr) do |_, i, _, e|
+          AssignmentNode.new(i, e, true)
+        end
       end
 
       rule :type_assignment do
-        match(:identifier, :type_dec) { |i,td| AssignmentNode.new( i, td ) }
+        match(:identifier, :type_dec) { |i, td| AssignmentNode.new(i, td) }
       end
 
       rule :return do
