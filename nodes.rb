@@ -39,10 +39,10 @@ class Scope
   end
 
   def get_func( name )
-    if @funcs.has_key?( name )
+    if @funcs.key?(name)
       result = @funcs[name]
-    elsif @upper != nil
-      result = @upper.get_func( name )
+    elsif !@upper.nil?
+      result = @upper.get_func(name)
     else
       result = nil
     end
@@ -52,13 +52,18 @@ end
 
 # Top level node, containing all other nodes.
 class SHLProgramNode
-  def initialize( statements )
+  def initialize(statements)
     @statements = statements
   end
 
   def evaluate
     scope = Scope.new
-    @statements.each { |s| s.evaluate( scope ) }
+    @statements.each do |s|
+      r = s.evaluate(scope)
+      if [:break, :return, :continue].include? r[0]
+        fail "Unexpected keyword \"#{r[0].to_s}\""
+      end
+    end
   end
 end
 
@@ -66,42 +71,48 @@ end
 class BlockNode < SHLProgramNode
   def evaluate( scope )
     new_scope = Scope.new( scope )
-    @statements.each { |s| s.evaluate( new_scope ) }
+    @statements.each do |s|
+      r = s.evaluate(new_scope)
+      return r if [:break, :continue, :return].include? r[0]
+    end
   end
 end
 
 # Node for function definition
 class FunctionDefNode
-  def initialize( name, vars, block )
+  def initialize(name, vars, block)
     @name, @vars, @block = name, vars, block
   end
 
-  def evaluate( scope )
-    scope.add_func( @name, FunctionNode.new( @name, @vars, @block ) )
+  def evaluate(scope)
+    scope.add_func(@name, FunctionNode.new(@name, @vars, @block))
+    [:ok, nil]
   end
 end
 
 # Function node stored in scope
 class FunctionNode
-  def initialize( name, vars, block )
+  def initialize(name, vars, block)
     @name, @vars, @block = name, vars, block
   end
 
-  def evaluate( scope, params )
-    new_scope = Scope.new( scope )
+  def evaluate(scope, params)
+    new_scope = Scope.new(scope)
 
     # deep copy of vars to preserve values.
-    vars_copy = Array.new
+    vars_copy = []
     @vars.each { |e| vars_copy.push(e.dup) }
 
     # add param values to vars
-    params.each_with_index { |p,i| vars_copy[i][1] = p }
+    params.each_with_index { |p, i| vars_copy[i][1] = p }
     # check for :nv
     vars_copy.each { |v| puts 'Error: unassigned parameter' if v[1] == :nv }
     # add vars as variables to new scope
-    vars_copy.each { |v| new_scope.set_var( v[0], v[1].evaluate( scope ) ) }
+    vars_copy.each { |v| new_scope.set_var(v[0], v[1].evaluate(scope)) }
 
-    @block.evaluate( new_scope )
+    r = @block.evaluate(new_scope)
+    r[0] = :ok if r[0] == :return
+    r
   end
 end
 
@@ -113,17 +124,18 @@ class FunctionCallNode
 
   def evaluate( scope )
     #---"builtin" printline for now
-    if @name == "pl"
-      @params.each { |p| puts p.evaluate( scope ) }
-      return
+    if @name == 'pl'
+
+      @params.each { |p| puts p.evaluate(scope)[1] }
+      return [:ok, nil]
     end
     #----
 
-    func = scope.get_func( @name )
-    if func != nil
-      func.evaluate( scope, @params )
+    func = scope.get_func(@name)
+    if !func.nil?
+      return func.evaluate(scope, @params)
     else
-      puts "Error: no function found."
+      fail 'Error: no function found.'
     end
   end
 end
@@ -132,32 +144,61 @@ end
 
 # Node for a for loop.
 class ForNode
-  def initialize( comp, inc, block, assign = nil )
+  def initialize(comp, inc, block, assign = nil)
     @comp, @inc, @block, @assign = comp, inc, block, assign
   end
 
-  def evaluate( scope )
+  def evaluate(scope)
     !@assign.nil? && @assign.evaluate(scope)
 
-    while @comp.evaluate(scope)
-      new_scope = Scope.new( scope )
-      @block.evaluate( new_scope )
-      @inc.evaluate( scope )
+    while @comp.evaluate(scope)[1]
+      new_scope = Scope.new(scope)
+      r = @block.evaluate(new_scope)
+      case r[0]
+      when :continue
+        next
+      when :break
+        return [:ok, nil]
+      when :return
+        return r
+      end
+      @inc.evaluate(scope)
     end
+    [:ok, nil]
   end
 end
 
 # Node for a while loop.
 class WhileNode
-  def initialize( comp, block )
+  def initialize(comp, block)
     @comp, @block = comp, block
   end
 
-  def evaluate( scope )
-    while @comp.evaluate( scope )
-      new_scope = Scope.new( scope )
-      @block.evaluate( new_scope )
+  def evaluate(scope)
+    while @comp.evaluate(scope)
+      new_scope = Scope.new(scope)
+      r = @block.evaluate(new_scope)
+      case r[0]
+      when :continue
+        next
+      when :break
+        return [:ok, nil]
+      when :return
+        return r
+      end
     end
+  end
+end
+
+# Node for return, break or continue
+class InterruptNode
+  def initialize(type, expr = nil)
+    @type, @expr = type, expr
+  end
+
+  def evaluate(scope)
+    val = @expr.nil? ? nil : @expr.evaluate(scope)[1]
+    [@type, val]
   end
 end
 
@@ -170,9 +211,9 @@ class ConditionalNode
 
   def evaluate(scope)
     return @i_block.evaluate(scope) if @i_block.true?(scope)
-
-    l = -> { !@e_block.nil? && @e_block.evaluate(scope) }
-    @ei_blocks.detect(l) { |ei| ei.true?(scope) && ei.evaluate(scope) }
+    l = -> { !@e_block.nil? ? @e_block : nil }
+    t = @ei_blocks.detect(l) { |ei| ei.true?(scope) }
+    !t.nil? ? t.evaluate(scope) : [:ok, nil]
   end
 end
 
@@ -188,7 +229,7 @@ class IfNode
   end
 
   def true?(scope)
-    @cond.evaluate scope
+    @cond.evaluate(scope)[1]
   end
 end
 
@@ -198,38 +239,39 @@ class ConditionNode
     @cond = cond
   end
 
-  def evaluate (scope)
-    @cond.evaluate scope
+  def evaluate(scope)
+    [:ok, @cond.evaluate(scope)[1]]
   end
 end
 
 # Node for comparisons.
 class ComparisonNode
-  def initialize( lhs, rhs, op )
+  def initialize(lhs, rhs, op)
     @lhs, @rhs, @op = lhs, rhs, op
   end
 
-  def evaluate( scope )
-    @lhs.evaluate( scope ).send( @op, @rhs.evaluate( scope ) )
+  def evaluate(scope)
+    [:ok, @lhs.evaluate(scope)[1].send(@op, @rhs.evaluate(scope)[1])]
   end
 end
 
 # Node for arithmetic operations.
 class ArithmeticNode
-  def initialize( lhs, rhs, op )
+  def initialize(lhs, rhs, op)
     @lhs, @rhs, @op = lhs, rhs, op
   end
 
   def evaluate(scope)
-    lhs, rhs = @lhs.evaluate(scope), @rhs.evaluate(scope)
-    if @op == '/'
-      lhs.to_f / rhs.to_f
-    elsif @op == '//'
-      lhs / rhs
-    elsif @op == '**'
-      lhs**rhs
+    lhs, rhs = @lhs.evaluate(scope)[1], @rhs.evaluate(scope)[1]
+    case @op
+    when '/'
+      [:ok, lhs.to_f / rhs.to_f]
+    when '//'
+      [:ok, lhs / rhs]
+    when '**'
+      [:ok, lhs**rhs]
     else
-      lhs.send(@op, rhs)
+      [:ok, lhs.send(@op, rhs)]
     end
   end
 end
@@ -241,7 +283,7 @@ class AssignmentNode
   end
 
   def evaluate(scope)
-    scope.set_var(@name, @value.evaluate(scope), @outer)
+    [:ok, scope.set_var(@name, @value.evaluate(scope)[1], @outer)]
   end
 end
 
@@ -254,11 +296,11 @@ class VariableNode
   end
 
   def evaluate( scope )
-    value = scope.get_var( @name )
-    if value != nil
-      return value
+    value = scope.get_var(@name)
+    if !value.nil?
+      return [:ok, value[1]]
     else
-      puts "Error: no variable \"#{@name}\" found."
+      fail "Error: no variable \"#{@name}\" found."
     end
   end
 end
@@ -270,7 +312,7 @@ class HashNode
   end
 
   def evaluate( scope )
-    @hash
+    [:ok, @hash]
   end
 end
 
@@ -284,7 +326,7 @@ class ArrayNode
   def evaluate( scope )
     return_array = []
     @array.each { |e| return_array << e.evaluate( scope ) }
-    return_array
+    [:ok, return_array]
   end
 end
 
@@ -295,6 +337,6 @@ class ConstantNode
   end
 
   def evaluate( scope )
-    @value
+    [:ok, @value]
   end
 end

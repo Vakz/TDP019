@@ -17,7 +17,8 @@ class SHLParse
       token(/[\wÅÄÖåäö][\w\d_åäöÅÄÖ]*/) { |m| m } # identifiers och nyckelord
       token(/:[ifsahb]/) { |m| m }       # type assignments
       token(/~ei|~[iewf]/) { |m| m }  # if / loops
-      token(/==|<=|>=|!=|\*\*|\/\/|->|&&|\|\|/) { |m| m }
+      token(/\!->|->\!/) { |m| m }
+      token(/==|<=|>=|!=|\*\*|\/\/|<-|->|&&|\|\|/) { |m| m }
       token(/./) { |m| m }              # symbol
 
       # PARSER
@@ -38,8 +39,8 @@ class SHLParse
         match(:class_def)
         match(:function_def)
         match(:return, ';')
-        match('!->', ';')
-        match('->!', ';')
+        match('!->', ';') { InterruptNode.new(:continue) } # continue
+        match('->!', ';') { InterruptNode.new(:break) }# break
       end
 
       rule :expr do
@@ -98,7 +99,7 @@ class SHLParse
 
       rule :elseif do
         match('~ei', :expr, :cond_body) do |_, c, b|
-          IfBlock.new(b, BlockNode.new(c))
+          IfNode.new(BlockNode.new(b), c)
         end
       end
 
@@ -186,7 +187,7 @@ class SHLParse
         match(:identifier, '.', :identifier)
         match(:identifier, '[', :identifier, ']')
         match(:identifier, '[', :type, ']')
-        match(:name) { |n| VariableNode.new( n ) }
+        match(:name) { |n| VariableNode.new(n) }
       end
 
       rule :name do
@@ -208,12 +209,14 @@ class SHLParse
       end
 
       rule :comparison do
-        match(:arith_expr, :comp_op, :arith_expr) { |a, op, b| ComparisonNode.new( a,b,op ) }
+        match(:arith_expr, :comp_op, :arith_expr) do |a, op, b|
+          ComparisonNode.new(a, b, op)
+        end
       end
 
       rule :type_dec do
-        match(':i') { ConstantNode.new( 0 ) }
-        match(':f') { ConstantNode.new( 0.0 ) }
+        match(':i') { ConstantNode.new(0) }
+        match(':f') { ConstantNode.new(0.0) }
         match(':s') { ConstantNode.new('') }
         match(':a') { ConstantNode.new([]) }
         match(':h') { ConstantNode.new({}) }
@@ -227,8 +230,12 @@ class SHLParse
 
       rule :arith_expr do
         match('(', :arith_expr, ')')
-        match(:arith_expr, :arith_op, :term) { |a, op, b| ArithmeticNode.new(a, b, op) }
-        match(:term, :arith_op, :term) { |a, op, b| ArithmeticNode.new(a, b, op) }
+        match(:arith_expr, :arith_op, :term) do |a, op, b|
+          ArithmeticNode.new(a, b, op)
+         end
+        match(:term, :arith_op, :term) do |a, op, b|
+          ArithmeticNode.new(a, b, op)
+        end
         match(:term)
       end
 
@@ -276,8 +283,8 @@ class SHLParse
       end
 
       rule :return do
-        match('<-', :expr)
-        match('<-')
+        match('<-', :expr) { |_, e| InterruptNode.new(:return, e) }
+        match('<-') { InterruptNode.new(:return) }
       end
 
       rule :type do
