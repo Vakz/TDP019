@@ -18,12 +18,12 @@ class SHLParse
       token(/:[ifsahb]/) { |m| m }       # type assignments
       token(/~ei|~[iewf]/) { |m| m }  # if / loops
       token(/\!->|->\!/) { |m| m }
-      token(/==|<=|>=|!=|\*\*|\/\/|<-|->|&&|\|\|/) { |m| m }
+      token(/==|<=|>=|!=|\*\*|\/\/|<-|->|\+\+|--|&&|\|\|/) { |m| m }
       token(/./) { |m| m }              # symbol
 
       # PARSER
       start :begin do
-        match(:stmt_list) { |sl| SHLProgramNode.new( sl ) }
+        match(:stmt_list) { |sl| SHLProgramNode.new(sl) }
       end
 
       rule :stmt_list do
@@ -40,15 +40,13 @@ class SHLParse
         match(:function_def)
         match(:return, ';')
         match('!->', ';') { InterruptNode.new(:continue) } # continue
-        match('->!', ';') { InterruptNode.new(:break) }# break
+        match('->!', ';') { InterruptNode.new(:break) } # break
       end
 
       rule :expr do
         match('(', :expr, ')')
         match(:assignment)
         match(:conversion)
-        match(:unary_op, :expr)
-        match(:expr, :unary_op)
         match(:bool_expr)
         match(:comparison)
         match(:arith_expr)
@@ -58,8 +56,15 @@ class SHLParse
         match('!', :expr) { |_, b| !b }
       end
 
+      rule :unary_expr do
+        match(:unary_op, :identifier) { |op, expr| UnaryExprNode.new(expr, op, false) }
+        match(:identifier, :unary_op) { |expr, op| UnaryExprNode.new(expr, op, true) }
+      end
+
       rule :conversion do
-        match(:identifier, '->', :type_dec) { 3.to_i }
+        match(:identifier, '->', :type_dec) do |i, _, t|
+          ConversionNode.new(i, t)
+        end
       end
 
       rule :bool_expr do
@@ -153,7 +158,7 @@ class SHLParse
       end
 
       rule :arg_list do
-        match(:expr, ',', :arg_list) { |e,_,al| [e].concat(al) }
+        match(:expr, ',', :arg_list) { |e, _, al| [e].concat(al) }
         match(:expr) { |e| [e] }
       end
 
@@ -166,7 +171,7 @@ class SHLParse
 
       rule :param_def_list do
         match(:identifier, '=', :expr, ',', :param_def_list) { |i,_,e,_,pdl| [[i.name,e]].concat(pdl) }
-        match(:identifier, '=', :expr) { |i,_,e| [[i.name,e]] }
+        match(:identifier, '=', :expr) { |i, _, e| [[i.name,e]] }
       end
 
       rule :class_def do
@@ -176,11 +181,16 @@ class SHLParse
       # TODO: Add possibility to create an empty function? Not currently in BNF
       rule :function_def do
         match('@', :identifier, '(', :param_list, ')', '{', :stmt_list, '}') do |_,i,_,pl,_,_,sl|
-          FunctionDefNode.new( i.name, pl, BlockNode.new( sl ) )
+          FunctionDefNode.new(i.name, pl, BlockNode.new(sl))
         end
         match('@', :identifier, '(', ')', '{', :stmt_list, '}') do |_,i,_,_,_,sl|
-          FunctionDefNode.new( i.name, [], BlockNode.new( sl ) )
+          FunctionDefNode.new(i.name, [], BlockNode.new(sl))
         end
+      end
+
+      rule :value do
+        match(:identifier)
+        match(:type)
       end
 
       rule :identifier do
@@ -196,7 +206,7 @@ class SHLParse
 
       rule :unary_op do
         match('++')
-        match('--')
+        match(/--?/)
       end
 
       rule :comp_op do
@@ -232,7 +242,7 @@ class SHLParse
         match('(', :arith_expr, ')')
         match(:arith_expr, :arith_op, :term) do |a, op, b|
           ArithmeticNode.new(a, b, op)
-         end
+        end
         match(:term, :arith_op, :term) do |a, op, b|
           ArithmeticNode.new(a, b, op)
         end
@@ -250,6 +260,7 @@ class SHLParse
           ArithmeticNode.new(a, b, op)
         end
         match(:pow)
+
       end
 
       rule :pow do
@@ -258,12 +269,12 @@ class SHLParse
       end
 
       rule :factor do
-        match('-', :factor) { |_, a| -a }
         match('(', :arith_expr, ')') { |_, b, _| b }
+        match('-', :term) { |_, v| UnaryExprNode.new(v, '-', false) }
+        match(:unary_expr)
         match(:type)
         match(:expr_call)
         match(:identifier)
-
       end
 
       rule :assignment do
@@ -298,22 +309,22 @@ class SHLParse
       end
 
       rule :hash_arg_list do
-        match(:hash_arg, ',', :hash_arg_list)
-        match(:hash_arg)
+        match(:hash_arg, ',', :hash_arg_list) { |s, _, l| [s].concat(l) }
+        match(:hash_arg) { |x| [x] }
       end
 
       rule :hash_arg do
-        match(:identifier, ':', :identifier)
+        match(:value, ':', :value) { |lhs, _, rhs| [lhs, rhs] }
       end
 
       rule :hash do
-        match('{', :hash_arg_list, '}')
-        match('{', '}')
+        match('{', :hash_arg_list, '}') { |_, h, _| HashNode.new(h) }
+        match('{', '}') { HashNode.new }
       end
 
       rule :array do
-        match('[', :arg_list, ']') { |_,al| ArrayNode.new( al ) }
-        match('[', ']') { ArrayNode.new( Array.new )}
+        match('[', :arg_list, ']') { |_,al| ArrayNode.new(al) }
+        match('[', ']') { ArrayNode.new(Array.new)}
       end
 
       rule :string do

@@ -298,24 +298,45 @@ class VariableNode
   def evaluate( scope )
     value = scope.get_var(@name)
     if !value.nil?
-      return [:ok, value[1]]
+      return [:ok, value]
     else
       fail "Error: no variable \"#{@name}\" found."
     end
   end
 end
 
+
 # Node for a hash.
 class HashNode
-  def initialize( hash )
-    @hash = hash
+  def initialize(args = nil)
+    @args = args
+    @hash = {}
   end
 
-  def evaluate( scope )
+  def evaluate(scope)
+    @args.each do |x|
+      @hash[x[0].evaluate(scope)[1]] = x[1].evaluate(scope)[1]
+    end
     [:ok, @hash]
   end
 end
 
+class UnaryExprNode
+  def initialize(val, op, after)
+    @val, @op, @after = val, op, after
+  end
+
+  def evaluate(scope)
+    val = @val.evaluate(scope)[1]
+    case @op
+    when '-'
+      return [:ok, -val]
+    when '++', '--'
+      scope.set_var(@val.name, val.send(@op[0], 1))
+      return [:ok, @after ? val : @val.evaluate(scope)[1]]
+    end
+  end
+end
 
 # Node representing an array.
 class ArrayNode
@@ -327,6 +348,26 @@ class ArrayNode
     return_array = []
     @array.each { |e| return_array << e.evaluate( scope ) }
     [:ok, return_array]
+  end
+end
+
+class ConversionNode
+  def initialize(value, type)
+    @value, @type = value, type
+  end
+
+  def evaluate(scope)
+    val = @value.evaluate(scope)[1]
+    case @type.evaluate(scope)[1]
+    when String
+      return [:ok, val.to_s]
+    when Fixnum
+      return [:ok, val.to_i]
+    when Float
+      return [:ok, val.to_f]
+    when FalseClass
+      return [:ok, !!val]
+    end
   end
 end
 
