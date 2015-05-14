@@ -196,7 +196,7 @@ class SHLParse
       rule :identifier do
         match(:identifier, '.', :identifier)
         match(:identifier, '[', :identifier, ']')
-        match(:identifier, '[', :type, ']')
+        match(:identifier, '[', :type, ']') { |n, _, t, _| BracketCallNode.new(n, t) }
         match(:name) { |n| VariableNode.new(n) }
       end
 

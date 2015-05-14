@@ -126,7 +126,9 @@ class FunctionCallNode
     #---"builtin" printline for now
     if @name == 'pl'
 
-      @params.each { |p| puts p.evaluate(scope)[1] }
+      @params.each do |p|
+        puts p.evaluate(scope)[1]
+      end
       return [:ok, nil]
     end
     #----
@@ -268,8 +270,6 @@ class ArithmeticNode
       [:ok, lhs.to_f / rhs.to_f]
     when '//'
       [:ok, lhs / rhs]
-    when '**'
-      [:ok, lhs**rhs]
     else
       [:ok, lhs.send(@op, rhs)]
     end
@@ -279,12 +279,24 @@ end
 # Node for assignment, stores a name and a value (node).
 class AssignmentNode
   def initialize(var, value, outer = false)
-    @name, @value, @outer = var.name, value, outer
+    @value, @outer = value, outer
+    if var.class == BracketCallNode
+      @name = var
+      @array = true
+    else
+      @name = var.name
+    end
   end
 
   def evaluate(scope)
-    [:ok, scope.set_var(@name, @value.evaluate(scope)[1], @outer)]
+    if @array
+      @name.set(scope, @value)
+      [:ok, @value.evaluate(scope)[1]]
+    else
+      [:ok, scope.set_var(@name, @value.evaluate(scope)[1], @outer)]
+    end
   end
+
 end
 
 # Node for getting the value from a variable.
@@ -305,6 +317,26 @@ class VariableNode
   end
 end
 
+# Used when the bracket operator is called on an identifier
+class BracketCallNode
+
+  def initialize(identifier, arg)
+    @identifier, @arg = identifier, arg
+  end
+
+  def evaluate(scope)
+    arg_val = @arg.evaluate(scope)[1]
+    var = @identifier.evaluate(scope)[1]
+    val = var[arg_val].evaluate(scope)[1]
+    [:ok, val]
+  end
+
+  def set(scope, value)
+    a = @identifier.evaluate(scope)[1]
+    a[@arg.evaluate(scope)[1]] = value
+  end
+end
+
 
 # Node for a hash.
 class HashNode
@@ -320,7 +352,7 @@ class HashNode
     [:ok, @hash]
   end
 end
-
+# For arithmetic operations with only one operand, such as "a++"
 class UnaryExprNode
   def initialize(val, op, after)
     @val, @op, @after = val, op, after
@@ -346,11 +378,11 @@ class ArrayNode
 
   def evaluate( scope )
     return_array = []
-    @array.each { |e| return_array << e.evaluate( scope ) }
+    @array.each { |e| return_array << e }
     [:ok, return_array]
   end
 end
-
+# Node representing a cast
 class ConversionNode
   def initialize(value, type)
     @value, @type = value, type
