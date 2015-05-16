@@ -1,5 +1,7 @@
+§test
+{
+  @a() { 5; }
+  pl(2);
+}
 
-§Rect(x,y) {area = x*y; @area() { <- area; }}
-
-r = Rect(4,3);
-#pl( r.area() ); #to be implemented. (12)
+r = test();

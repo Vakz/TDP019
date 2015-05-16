@@ -125,7 +125,7 @@ class CallableNode
       r = @block.evaluate(new_scope)
       r[0] = :ok if r[0] == :return
     elsif @type == :class
-      r = @block.get_class_scope(new_scope)
+      r = [:ok, @block.get_class_scope(new_scope)]
     end
     r
   end
