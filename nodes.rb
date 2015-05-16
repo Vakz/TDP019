@@ -1,7 +1,6 @@
 require './builtins'
 
 class Scope
-
   def initialize( upper_scope = nil )
     @upper = upper_scope
     @vars = {}
@@ -33,9 +32,10 @@ class Scope
     @vars.key? name
   end
 
-  def add_callable( name, type, node )
+  def add_callable( name, node )
     #Check builtins first
-    @callables[name] = [type, node]
+
+    @callables[name] = node
   end
 
   def get_callable( name )
@@ -96,7 +96,7 @@ class CallableDefNode
   end
 
   def evaluate(scope)
-    scope.add_callable(@name, @type, CallableNode.new(@name, @type, @vars, @block))
+    scope.add_callable(@name, CallableNode.new(@name, @type, @vars, @block))
     [:ok, nil]
   end
 end
@@ -133,8 +133,12 @@ end
 
 # Node for function calls.
 class CallNode
-  def initialize( name, params )
-    @name, @params = name, params
+  def initialize( node, params )
+    @name, @params, @c_scope = node.name, params, nil
+    if node.class == MemberNode
+      @instance = node.instance
+      @c_scope = true
+    end
   end
 
   def evaluate( scope )
@@ -148,18 +152,32 @@ class CallNode
     end
     #----
 
+    if @c_scope == true
+      scope = scope.get_var(@instance.name)
+    end
+
     call = scope.get_callable(@name)
     if !call.nil?
-        return call[1].evaluate(scope, @params)
+        return call.evaluate(scope, @params)
     else
-      fail 'Error: no callable found.'
+      fail "Error: no callable \"#{@name}\" found."
     end
   end
 end
 
 # Node for accessing a member in a class.
 class MemberNode
+  attr_reader :name,:instance
 
+  def initialize(instance, member)
+    @instance, @member = instance, member
+    @name = @member.name
+  end
+
+  def evaluate(scope)
+    instance_scope = scope.get_var(@instance.name)
+    @member.evaluate(instance_scope)
+  end
 end
 
 # Node for a for loop.
@@ -297,16 +315,24 @@ end
 # Node for assignment, stores a name and a value (node).
 class AssignmentNode
   def initialize(var, value, outer = false)
-    @value, @outer = value, outer
+    @value, @outer, @c_scope = value, outer, nil
     if var.class == BracketCallNode
       @name = var
       @array = true
+    elsif var.class == MemberNode
+      @instance = var.instance  #class instance
+      @name = var.name          #name of var
+      @c_scope = true           #change scope in eval.
     else
       @name = var.name
     end
   end
 
   def evaluate(scope)
+    if @c_scope == true
+      scope = scope.get_var(@instance.name)
+    end
+
     if @array
       @name.set(scope, @value)
       [:ok, @value.evaluate(scope)[1]]

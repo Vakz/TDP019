@@ -1,7 +1,11 @@
-§test
-{
-  @a() { 5; }
-  pl(2);
-}
 
-r = test();
+!Pt(x) { @prnt_x(){ pl(x);} }
+p = Pt(2);
+
+a = p.x;
+pl(a); #2
+
+p.x = 3;
+pl(p.x); #3
+
+p.prnt_x(); #3
