@@ -74,8 +74,8 @@ class SHLParse
       end
 
       rule :expr_call do
-        match(:identifier, '(', :arg_list, ')') { |i, _, al| FunctionCallNode.new( i.name, al )}
-        match(:identifier, '(', ')') { |i| FunctionCallNode.new( i.name, [] ) }
+        match(:identifier, '(', :arg_list, ')') { |i, _, al| CallNode.new( i.name, al )}
+        match(:identifier, '(', ')') { |i| CallNode.new( i.name, [] ) }
       end
 
       rule :if_stmt do
@@ -175,16 +175,21 @@ class SHLParse
       end
 
       rule :class_def do
-        match('§', :identifier, '{', :stmt_list, '}')
+        match('§', :identifier,'(', :param_list, ')', '{', :stmt_list, '}') do |_,i,_,pl,_,_,sl|
+          CallableDefNode.new(i.name, :class, pl, BlockNode.new(sl))
+        end
+        match('§', :identifier, '{', :stmt_list, '}') do |_,i,_,sl|
+          CallableDefNode.new(i.name, :class, [], BlockNode.new(sl))
+        end
       end
 
       # TODO: Add possibility to create an empty function? Not currently in BNF
       rule :function_def do
         match('@', :identifier, '(', :param_list, ')', '{', :stmt_list, '}') do |_,i,_,pl,_,_,sl|
-          FunctionDefNode.new(i.name, pl, BlockNode.new(sl))
+          CallableDefNode.new(i.name, :func, pl, BlockNode.new(sl))
         end
         match('@', :identifier, '(', ')', '{', :stmt_list, '}') do |_,i,_,_,_,sl|
-          FunctionDefNode.new(i.name, [], BlockNode.new(sl))
+          CallableDefNode.new(i.name, :func, [], BlockNode.new(sl))
         end
       end
 

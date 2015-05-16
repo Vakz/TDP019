@@ -1,3 +1,4 @@
-a = 2.7;
-b = a->:s;
-pl(b);
+§Rect(x,y) {area = x*y; @area() { <- area; }}
+
+r = Rect(4,3);
+#pl( r.area() ); #to be implemented. (12)

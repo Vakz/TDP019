@@ -5,7 +5,7 @@ class Scope
   def initialize( upper_scope = nil )
     @upper = upper_scope
     @vars = {}
-    @funcs = {}
+    @callables = {}
   end
 
   def set_var(name, value, outer = false)
@@ -33,16 +33,16 @@ class Scope
     @vars.key? name
   end
 
-  def add_func( name, node )
+  def add_callable( name, type, node )
     #Check builtins first
-    @funcs[name] = node
+    @callables[name] = [type, node]
   end
 
-  def get_func( name )
-    if @funcs.key?(name)
-      result = @funcs[name]
+  def get_callable( name )
+    if @callables.key?(name)
+      result = @callables[name]
     elsif !@upper.nil?
-      result = @upper.get_func(name)
+      result = @upper.get_callable(name)
     else
       result = nil
     end
@@ -76,24 +76,35 @@ class BlockNode < SHLProgramNode
       return r if [:break, :continue, :return].include? r[0]
     end
   end
+
+  def get_class_scope( scope )
+    new_scope = Scope.new( scope )
+    @statements.each do |s|
+      r = s.evaluate(new_scope)
+      if [:break, :return, :continue].include? r[0]
+        fail "Unexpected keyword \"#{r[0].to_s}\""
+      end
+    end
+    return new_scope
+  end
 end
 
-# Node for function definition
-class FunctionDefNode
-  def initialize(name, vars, block)
-    @name, @vars, @block = name, vars, block
+# Node for callable definition
+class CallableDefNode
+  def initialize(name, type, vars, block)
+    @name, @type, @vars, @block = name, type, vars, block
   end
 
   def evaluate(scope)
-    scope.add_func(@name, FunctionNode.new(@name, @vars, @block))
+    scope.add_callable(@name, @type, CallableNode.new(@name, @type, @vars, @block))
     [:ok, nil]
   end
 end
 
-# Function node stored in scope
-class FunctionNode
-  def initialize(name, vars, block)
-    @name, @vars, @block = name, vars, block
+# callable node stored in callables
+class CallableNode
+  def initialize(name, type, vars, block)
+    @name, @type, @vars, @block = name, type, vars, block
   end
 
   def evaluate(scope, params)
@@ -110,14 +121,18 @@ class FunctionNode
     # add vars as variables to new scope
     vars_copy.each { |v| new_scope.set_var(v[0], v[1].evaluate(scope)) }
 
-    r = @block.evaluate(new_scope)
-    r[0] = :ok if r[0] == :return
+    if @type == :func
+      r = @block.evaluate(new_scope)
+      r[0] = :ok if r[0] == :return
+    elsif @type == :class
+      r = @block.get_class_scope(new_scope)
+    end
     r
   end
 end
 
 # Node for function calls.
-class FunctionCallNode
+class CallNode
   def initialize( name, params )
     @name, @params = name, params
   end
@@ -133,16 +148,19 @@ class FunctionCallNode
     end
     #----
 
-    func = scope.get_func(@name)
-    if !func.nil?
-      return func.evaluate(scope, @params)
+    call = scope.get_callable(@name)
+    if !call.nil?
+        return call[1].evaluate(scope, @params)
     else
-      fail 'Error: no function found.'
+      fail 'Error: no callable found.'
     end
   end
 end
 
+# Node for accessing a member in a class.
+class MemberNode
 
+end
 
 # Node for a for loop.
 class ForNode
@@ -409,7 +427,7 @@ class ConstantNode
     @value = value
   end
 
-  def evaluate( scope )
+  def evaluate(scope)
     [:ok, @value]
   end
 end
