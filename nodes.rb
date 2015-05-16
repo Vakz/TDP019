@@ -119,7 +119,7 @@ class CallableNode
     # check for :nv
     vars_copy.each { |v| puts 'Error: unassigned parameter' if v[1] == :nv }
     # add vars as variables to new scope
-    vars_copy.each { |v| new_scope.set_var(v[0], v[1].evaluate(scope)) }
+    vars_copy.each { |v| new_scope.set_var(v[0], v[1].evaluate(scope)[1]) }
 
     if @type == :func
       r = @block.evaluate(new_scope)
@@ -158,7 +158,7 @@ class CallNode
 
     call = scope.get_callable(@name)
     if !call.nil?
-        return call.evaluate(scope, @params)
+      return call.evaluate(scope, @params)
     else
       fail "Error: no callable \"#{@name}\" found."
     end
@@ -337,6 +337,8 @@ class AssignmentNode
       @name.set(scope, @value)
       [:ok, @value.evaluate(scope)[1]]
     else
+      val = @value.evaluate(scope)[1]
+      #puts "VAL #{val.inspect}"
       [:ok, scope.set_var(@name, @value.evaluate(scope)[1], @outer)]
     end
   end
