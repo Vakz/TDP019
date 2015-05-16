@@ -1,4 +1,10 @@
-§Rect(x,y) {area = x*y; @area() { <- area; }}
+!Pt(x) { @prnt_x(){ pl(x);} }
+p = Pt(2);
 
-r = Rect(4,3);
-#pl( r.area() ); #to be implemented. (12)
+a = p.x;
+pl(a); #2
+
+p.x = 3;
+pl(p.x); #3
+
+p.prnt_x(); #3
