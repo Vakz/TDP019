@@ -33,8 +33,6 @@ class Scope
   end
 
   def add_callable( name, node )
-    #Check builtins first
-
     @callables[name] = node
   end
 
@@ -133,40 +131,65 @@ end
 # Node for function calls.
 class CallNode
   def initialize( node, params )
-    @name, @params, @c_scope = node.name, params, nil
-    if node.class == MemberNode
-      @instance = node.instance
-      @c_scope = true
-    end
+    @node, @params = node, params
   end
 
   def evaluate( scope )
     #---"builtin" printline for now
-    if @name == 'pl'
-
-      @params.each do |p|
-        puts p.evaluate(scope)[1]
-      end
-      return [:ok, nil]
-    end
+    #if @node.name == 'pl'
+    #
+    #    @params.each do |p|
+    #    puts p.evaluate(scope)[1]
+    #  end
+    #  return [:ok, nil]
+    #end
     #----
 
-    if @c_scope == true
-      scope = scope.get_var(@instance.name)
+    if @node.class == MemberNode
+      #Check type of variable thats accessing a member, if its not a Scope
+      #then only builtin functions for string/array/hash can be called.
+      type = @node.get_type(scope)
+
+      if type == Scope
+        #change scope to the class scope.
+        scope = scope.get_var(@node.instance.name)
+      elsif type == String
+        if Builtins::string.has_key?(@node.member)
+          return Builtins::string[@node.member].call(@params)
+        else
+          fail "Error: no method \"#{@node.member}\" for type \"#{type}\" found."
+        end
+      elsif type == Array
+        if Builtins::array.has_key?(@node.member)
+          return Builtins::array[@node.member].call(@params)
+        else
+          fail "Error: no method \"#{@node.member}\" for type \"#{type}\" found."
+        end
+      elsif type == Hash
+        if Builtins::hash.has_key?(@node.member)
+          return Builtins::hash[@node.member].call(@params)
+        else
+          fail "Error: no method \"#{@node.member}\" for type \"#{type}\" found."
+        end
+      end
+    else
+      if Builtins::General.has_key?(@node.name)
+        return [:ok, Builtins::General[@node.name].call(@params)]
+      end
     end
 
-    call = scope.get_callable(@name)
+    call = scope.get_callable(@node.name)
     if !call.nil?
       return call.evaluate(scope, @params)
     else
-      fail "Error: no callable \"#{@name}\" found."
+      fail "Error: no callable \"#{@node.name}\" found."
     end
   end
 end
 
 # Node for accessing a member in a class.
 class MemberNode
-  attr_reader :name,:instance
+  attr_reader :name, :instance, :member
 
   def initialize(instance, member)
     @instance, @member = instance, member
@@ -176,6 +199,10 @@ class MemberNode
   def evaluate(scope)
     instance_scope = scope.get_var(@instance.name)
     @member.evaluate(instance_scope)
+  end
+
+  def get_type(scope)
+    scope.get_var(@instance.name).class
   end
 end
 
