@@ -120,7 +120,6 @@ class CallableNode
     vars_copy.each { |v| puts 'Error: unassigned parameter' if v[1] == :nv }
     # add vars as variables to new scope
     vars_copy.each { |v| new_scope.set_var(v[0], v[1].evaluate(scope)[1]) }
-
     if @type == :func
       r = @block.evaluate(new_scope)
       r[0] = :ok if r[0] == :return
@@ -329,16 +328,13 @@ class AssignmentNode
   end
 
   def evaluate(scope)
-    if @c_scope == true
-      scope = scope.get_var(@instance.name)
-    end
+
+    scope = scope.get_var(@instance.name) if @c_scope
 
     if @array
       @name.set(scope, @value)
       [:ok, @value.evaluate(scope)[1]]
     else
-      val = @value.evaluate(scope)[1]
-      #puts "VAL #{val.inspect}"
       [:ok, scope.set_var(@name, @value.evaluate(scope)[1], @outer)]
     end
   end

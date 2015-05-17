@@ -121,7 +121,6 @@ class SHLParse
         # Assignment and Condition specified
         match('~f', :assignment, ';', :expr, :cond_body) do
           |_, a, _, c, body|
-          puts "here"
           for_statement_handler(body, assignment: a, cond: c)
         end
         # Condition and Incement specified
@@ -200,8 +199,7 @@ class SHLParse
 
       rule :identifier do
         match(:identifier, '.', :identifier) { |i1,_,i2| MemberNode.new(i1,i2) }
-        match(:identifier, '[', :identifier, ']')
-        match(:identifier, '[', :type, ']') { |n, _, t, _| BracketCallNode.new(n, t) }
+        match(:identifier, '[', :value, ']') { |n, _, t, _| BracketCallNode.new(n, t) }
         match(:name) { |n| VariableNode.new(n) }
       end
 
@@ -211,7 +209,7 @@ class SHLParse
 
       rule :unary_op do
         match('++')
-        match(/--?/)
+        match(/$--?/)
       end
 
       rule :comp_op do
