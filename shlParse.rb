@@ -74,8 +74,8 @@ class SHLParse
       end
 
       rule :expr_call do
-        match(:identifier, '(', :arg_list, ')') { |i, _, al| CallNode.new( i, al )}
-        match(:identifier, '(', ')') { |i| CallNode.new( i, [] ) }
+        match(:identifier, '(', :arg_list, ')') { |i, _, al| CallNode.new(i, al)}
+        match(:identifier, '(', ')') { |i| CallNode.new(i, []) }
       end
 
       rule :if_stmt do
@@ -185,7 +185,6 @@ class SHLParse
         end
       end
 
-      # TODO: Add possibility to create an empty function? Not currently in BNF
       rule :function_def do
         match('@', :identifier, '(', :param_list, ')', '{', :stmt_list, '}') do |_,i,_,pl,_,_,sl|
           CallableDefNode.new(i.name, :func, pl, BlockNode.new(sl))
@@ -333,7 +332,7 @@ class SHLParse
 
       rule :array do
         match('[', :arg_list, ']') { |_,al| ArrayNode.new(al) }
-        match('[', ']') { ArrayNode.new(Array.new)}
+        match('[', ']') { ArrayNode.new(Array.new) }
       end
 
       rule :string do
@@ -342,20 +341,20 @@ class SHLParse
       end
 
       rule :float do
-        match(Float) { |f| ConstantNode.new( f ) }
+        match(Float) { |f| ConstantNode.new(f) }
       end
 
       rule :int do
-        match(Integer) { |i| ConstantNode.new( i ) }
+        match(Integer) { |i| ConstantNode.new(i) }
       end
 
       rule :bool do
-        match('true') { ConstantNode.new( true ) }
-        match('false') { ConstantNode.new( false ) }
+        match('true') { ConstantNode.new(true) }
+        match('false') { ConstantNode.new(false) }
       end
 
       rule :nil do
-        match('nil') { ConstantNode.new( nil ) }
+        match('nil') { ConstantNode.new(nil) }
       end
     end
   end

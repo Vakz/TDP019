@@ -1,11 +1,11 @@
-# Built in functions for Arrays
-
+# Built in functions for strings
 module StringFuncs
   def self.times(string, x)
     string * x
   end
 end
 
+# Built in function for arrays
 module ArrayFuncs
   def self.includes(array, element)
     array.include? element
@@ -23,6 +23,7 @@ module GeneralFuncs
   end
 end
 
+# Built in functions for hashes
 module HashFuncs
   def self.has_key(hash, element)
     hash.key? element
@@ -31,8 +32,7 @@ end
 
 module Builtins
   General = { 'p' => GeneralFuncs.method(:p),
-              'pl' => GeneralFuncs.method(:pl)
-  }
+              'pl' => GeneralFuncs.method(:pl) }
   String = { 'times' => StringFuncs.method(:times) }
   Array = { 'includes' => ArrayFuncs.method(:includes) }
   Hash = { 'has_key' => HashFuncs.method(:has_key) }

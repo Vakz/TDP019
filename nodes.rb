@@ -1,7 +1,7 @@
 require './builtins'
 
 class Scope
-  def initialize( upper_scope = nil )
+  def initialize(upper_scope = nil)
     @upper = upper_scope
     @vars = {}
     @callables = {}
@@ -17,11 +17,11 @@ class Scope
   end
 
   # recursively get variables through upper scopes if not found
-  def get_var( name )
-    if @vars.has_key?( name )
+  def get_var(name)
+    if @vars.has_key?(name)
       result = @vars[name]
     elsif @upper != nil
-      result = @upper.get_var( name )
+      result = @upper.get_var(name)
     else
       result = nil
     end
@@ -32,11 +32,11 @@ class Scope
     @vars.key? name
   end
 
-  def add_callable( name, node )
+  def add_callable(name, node)
     @callables[name] = node
   end
 
-  def get_callable( name )
+  def get_callable(name)
     if @callables.key?(name)
       result = @callables[name]
     elsif !@upper.nil?
@@ -67,16 +67,16 @@ end
 
 # Node for a block of code within brackets.
 class BlockNode < SHLProgramNode
-  def evaluate( scope )
-    new_scope = Scope.new( scope )
+  def evaluate(scope)
+    new_scope = Scope.new(scope)
     @statements.each do |s|
       r = s.evaluate(new_scope)
       return r if [:break, :continue, :return].include? r[0]
     end
   end
 
-  def get_class_scope( scope )
-    new_scope = Scope.new( scope )
+  def get_class_scope(scope)
+    new_scope = Scope.new(scope)
     @statements.each do |s|
       r = s.evaluate(new_scope)
       if [:break, :return, :continue].include? r[0]
@@ -130,11 +130,11 @@ end
 
 # Node for function calls.
 class CallNode
-  def initialize( node, params )
+  def initialize(node, params)
     @node, @params = node, params
   end
 
-  def evaluate( scope )
+  def evaluate(scope)
     if @node.class == MemberNode
       # Check type of variable thats accessing a member, if its not a Scope
       # then only builtin functions for string/array/hash can be called.
@@ -358,11 +358,11 @@ end
 class VariableNode
   attr_reader :name
 
-  def initialize( name )
+  def initialize(name)
     @name = name
   end
 
-  def evaluate( scope )
+  def evaluate(scope)
     value = scope.get_var(@name)
     if !value.nil?
       return [:ok, value]
@@ -427,16 +427,17 @@ end
 
 # Node representing an array.
 class ArrayNode
-  def initialize( array )
+  def initialize(array)
     @array = array
   end
 
-  def evaluate( scope )
+  def evaluate(scope)
     return_array = []
     @array.each { |e| return_array << e.evaluate(scope)[1] }
     [:ok, return_array]
   end
 end
+
 # Node representing a cast
 class ConversionNode
   def initialize(value, type)
@@ -460,7 +461,7 @@ end
 
 # Node representing a constant.
 class ConstantNode
-  def initialize( value )
+  def initialize(value)
     @value = value
   end
 
