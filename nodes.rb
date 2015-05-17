@@ -133,6 +133,7 @@ end
 # Node for function calls.
 class CallNode
   def initialize( node, params )
+    puts node.inspect
     @name, @params, @c_scope = node.name, params, nil
     if node.class == MemberNode
       @instance = node.instance
@@ -154,7 +155,7 @@ class CallNode
     if @c_scope == true
       scope = scope.get_var(@instance.name)
     end
-
+    puts scope.inspect
     call = scope.get_callable(@name)
     if !call.nil?
       return call.evaluate(scope, @params)
@@ -455,3 +456,5 @@ class ConstantNode
     [:ok, @value]
   end
 end
+
+puts builtins.inspect
