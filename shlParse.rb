@@ -98,7 +98,7 @@ class SHLParse
       end
 
       rule :elseif_list do
-        match(:elseif_list, :elseif) { |list, ei| ei.concat(list) }
+        match(:elseif_list, :elseif) { |list, ei| [ei].concat(list) }
         match(:elseif) { |a| [a] }
       end
 
