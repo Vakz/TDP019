@@ -180,6 +180,9 @@ class SHLParse
         match('!', :identifier, '{', :stmt_list, '}') do |_,i,_,sl|
           CallableDefNode.new(i.name, :class, [], BlockNode.new(sl))
         end
+        match('!', :identifier, '(', ')', '{', :stmt_list, '}') do |_, i, _, _, _, sl|
+          CallableDefNode.new(i.name, :class, [], BlockNode.new(sl))
+        end
       end
 
       # TODO: Add possibility to create an empty function? Not currently in BNF
@@ -189,6 +192,9 @@ class SHLParse
         end
         match('@', :identifier, '(', ')', '{', :stmt_list, '}') do |_,i,_,_,_,sl|
           CallableDefNode.new(i.name, :func, [], BlockNode.new(sl))
+        end
+        match('@', :identifier, '{', :stmt_list, '}') do |_, i, _, sl, _|
+          CallableDefNode.new(i.name, :func, [],  BlockNode.new(sl))
         end
       end
 

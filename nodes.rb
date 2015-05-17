@@ -369,13 +369,13 @@ class BracketCallNode
   def evaluate(scope)
     arg_val = @arg.evaluate(scope)[1]
     var = @identifier.evaluate(scope)[1]
-    val = var[arg_val].evaluate(scope)[1]
+    val = var[arg_val]
     [:ok, val]
   end
 
   def set(scope, value)
     a = @identifier.evaluate(scope)[1]
-    a[@arg.evaluate(scope)[1]] = value
+    a[@arg.evaluate(scope)[1]] = value.evaluate(scope)[1]
   end
 end
 
@@ -420,7 +420,7 @@ class ArrayNode
 
   def evaluate( scope )
     return_array = []
-    @array.each { |e| return_array << e }
+    @array.each { |e| return_array << e.evaluate(scope)[1] }
     [:ok, return_array]
   end
 end
