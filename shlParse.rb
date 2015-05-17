@@ -209,7 +209,7 @@ class SHLParse
 
       rule :unary_op do
         match('++')
-        match(/$--?/)
+        match(/--/)
       end
 
       rule :comp_op do
