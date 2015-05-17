@@ -1,9 +1,18 @@
-def p( a )
-  print a
+def p(*a)
+  #a.each do |l|
+  #  print a.evaluate(scope)[1]
+  #end
 end
 
-def pl( a )
-  puts a
+def pl(*a)
+  #a.each do |l|
+  #  puts a.evaluate(scope)[1]
+  #end
 end
 
-builtins = {"p" => method(:p), "pl" => method(:pl)}
+module Builtins
+  General = {"p" => method(:p), "pl" => method(:pl)}
+  @string = {}
+  @array = {}
+  @hash = {}
+end
