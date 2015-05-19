@@ -407,6 +407,7 @@ class HashNode
     [:ok, @hash]
   end
 end
+
 # For arithmetic operations with only one operand, such as "a++"
 class UnaryExprNode
   def initialize(val, op, after)

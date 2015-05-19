@@ -1,3 +1,7 @@
-a = "asd";
+#>several
+  lines
+  commented
+  out<#
 
+a = "asd";
 pl(a.times(2));

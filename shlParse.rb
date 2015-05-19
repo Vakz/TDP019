@@ -10,14 +10,15 @@ class SHLParse
 
       # LEXER
       token(/\s+/)
-      token(/#.*$/) # Borde hantera alla en-rads kommentarer
+      token(/#>[^<]*<#/)                # start-stop comment
+      token(/#.*$/)                     # single line comment
       token(/\d+\.\d+/) { |m| m.to_f }	# float
       token(/\d+/)      { |m| m.to_i }	# int
-      token(/"[^"]*"/) { |m| m } 	# strings
-      token(/[\wÅÄÖåäö][\w\d_åäöÅÄÖ]*/) { |m| m } # identifiers och nyckelord
-      token(/:[ifsahb]/) { |m| m }       # type assignments
-      token(/~ei|~[iewf]/) { |m| m }  # if / loops
-      token(/\!->|->\!/) { |m| m }
+      token(/"[^"]*"/) { |m| m }      	# strings
+      token(/[\wÅÄÖåäö][\w\d_åäöÅÄÖ]*/) { |m| m } # identifiers
+      token(/:[ifsahb]/) { |m| m }      # type assignments
+      token(/~ei|~[iewf]/) { |m| m }    # if / loops
+      token(/\!->|->\!/) { |m| m }      # interrupt keywords
       token(/==|<=|>=|!=|\*\*|\/\/|<-|->|\+\+|--|&&|\|\|/) { |m| m }
       token(/./) { |m| m }              # symbol
 
