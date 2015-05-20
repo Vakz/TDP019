@@ -1,8 +1,8 @@
 #! /usr/bin/ruby
 # coding: utf-8
-require './rdparse'
-require './nodes'
-require './helpers'
+require_relative './rdparse'
+require_relative './nodes'
+require_relative './helpers'
 
 class SHLParse
   def initialize
@@ -213,8 +213,8 @@ class SHLParse
       end
 
       rule :value do
-        match(:identifier)
         match(:type)
+        match(:identifier)
       end
 
       rule :identifier do
@@ -347,13 +347,15 @@ class SHLParse
       end
 
       rule :array do
-        match('[', :arg_list, ']') { |_,al| ArrayNode.new(al) }
-        match('[', ']') { ArrayNode.new(Array.new) }
+        match('[', :arg_list, ']') { |_, al| ArrayNode.new(al) }
+        match('[', ']') { ArrayNode.new([]) }
       end
 
       rule :string do
         # Remove quotes around string
-        match(/"[^"]*"/) { |s| ConstantNode.new(s[1, s.length - 2]) }
+        match(/"[^"]*"/) do |s|
+          ConstantNode.new(s.length <= 2 ? '' : s[1...-1])
+        end
       end
 
       rule :float do
@@ -388,8 +390,10 @@ class SHLParse
   end
 end
 
-sp = SHLParse.new
-f = File.read ARGV[0].nil? ? 'test_program.shl' : ARGV[0]
-sp.log(false)
-program = sp.parse f
-program.evaluate
+if __FILE__ == $PROGRAM_NAME
+  sp = SHLParse.new
+  f = File.read ARGV[0].nil? ? 'test_program.shl' : ARGV[0]
+  sp.log(false)
+  program = sp.parse f
+  program.evaluate
+end

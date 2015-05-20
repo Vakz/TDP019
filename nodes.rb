@@ -1,5 +1,4 @@
-require './builtins'
-
+require_relative './builtins'
 class Scope
   attr_reader :vars
   def initialize(upper_scope = nil)
@@ -59,9 +58,10 @@ class SHLProgramNode
     scope = Scope.new
     @statements.each do |s|
       r = s.evaluate(scope)
-      if [:break, :return, :continue].include? r[0]
+      if [:break, :continue].include? r[0]
         fail "Unexpected keyword \"#{r[0].to_s}\""
       end
+      return r[1] if r[0] == :return
     end
   end
 end
@@ -84,7 +84,7 @@ class BlockNode < SHLProgramNode
         fail "Unexpected keyword \"#{r[0].to_s}\""
       end
     end
-    return new_scope
+    new_scope
   end
 end
 
@@ -344,7 +344,7 @@ end
 # Node for assignment, stores a name and a value (node).
 class AssignmentNode
   def initialize(var, value, outer = false)
-    @var, @value, @outer, @c_scope = var value, outer, nil
+    @var, @value, @outer, @c_scope = var, value, outer, nil
     if var.class == BracketCallNode
       @name = var
       @array = true
@@ -426,7 +426,8 @@ class HashNode
   end
 
   def evaluate(scope)
-    @args.each do |x|
+
+    !@args.nil? && @args.each do |x|
       @hash[x[0].evaluate(scope)[1]] = x[1].evaluate(scope)[1]
     end
     [:ok, @hash]
