@@ -54,12 +54,22 @@ class SHLParse
         match(:expr_call)
         match(:identifier)
         match(:type)
-        match('!', :expr) { |_, b| !b }
+        match('!', :expr) { |_, b| NegationNode.new(b) }
       end
 
       rule :unary_expr do
-        match(:unary_op, :identifier) { |op, expr| UnaryExprNode.new(expr, op, false) }
-        match(:identifier, :unary_op) { |expr, op| UnaryExprNode.new(expr, op, true) }
+        match(:unary_op, :identifier) do |op, expr|
+          UnaryExprNode.new(expr, op, false)
+        end
+        match(:unary_op, '^', :identifier) do |op, _, expr|
+          UnaryExprNode.new(expr, op, false, true)
+        end
+        match(:identifier, :unary_op) do |expr, op|
+          UnaryExprNode.new(expr, op, true)
+        end
+        match('^', :identifier, :unary_op) do |_, expr, op|
+          UnaryExprNode.new(expr, op, true, true)
+        end
       end
 
       rule :conversion do
@@ -69,8 +79,8 @@ class SHLParse
       end
 
       rule :bool_expr do
-        match(:bool_expr, '&&', :expr) { |a, _, b| a && b }
-        match(:bool_expr, '||', :expr) { |a, _, b| a || b }
+        match(:bool_expr, '&&', :expr) { |a, _, b| BoolExprNode.new(a, b, '&&') }
+        match(:bool_expr, '||', :expr) { |a, _, b| BoolExprNode.new(a, b, '||') }
         match(:bool)
       end
 
@@ -163,10 +173,14 @@ class SHLParse
       end
 
       rule :param_list do
-        match(:identifier, ',', :param_def_list) { |i,_,pdl| [[i.name,:nv]].concat(pdl) }
-        match(:identifier, ',', :param_list) { |i,_,pl| [[i.name,:nv]].concat(pl) }
+        match(:identifier, ',', :param_def_list) do |i, _, pdl|
+          [[i.name, :nv]].concat(pdl)
+        end
+        match(:identifier, ',', :param_list) do |i, _, pl|
+          [[i.name, :nv]].concat(pl)
+        end
         match(:param_def_list)
-        match(:identifier) { |i| [[i.name,:nv]] }
+        match(:identifier) { |i| [[i.name, :nv]] }
       end
 
       rule :param_def_list do
@@ -204,7 +218,8 @@ class SHLParse
       end
 
       rule :identifier do
-        match(:identifier, '.', :identifier) { |i1,_,i2| MemberNode.new(i1,i2) }
+        match(:identifier, '.', :identifier) { |i1, _, i2| MemberNode.new(i1,i2) }
+        # TODO: Allow for direct values and not just identifiers
         match(:identifier, '[', :value, ']') { |n, _, t, _| BracketCallNode.new(n, t) }
         match(:name) { |n| VariableNode.new(n) }
       end

@@ -1,6 +1,7 @@
 require './builtins'
 
 class Scope
+  attr_reader :vars
   def initialize(upper_scope = nil)
     @upper = upper_scope
     @vars = {}
@@ -183,6 +184,7 @@ class MemberNode
   end
 
   def evaluate(scope)
+
     instance_scope = scope.get_var(@instance.name)
     @member.evaluate(instance_scope)
   end
@@ -305,6 +307,21 @@ class ComparisonNode
   end
 end
 
+# Node for boolean operations
+class BoolExprNode
+  def initialize(lhs, rhs, op)
+    @lhs, @rhs, @op = lhs, rhs, op
+  end
+
+  def evaluate(scope)
+    lhs = @lhs.evaluate(scope)[1]
+    rhs = @rhs.evaluate(scope)[1]
+    result = @op == '&&' ? lhs && rhs : lhs || rhs
+    [:ok, result]
+  end
+
+end
+
 # Node for arithmetic operations.
 class ArithmeticNode
   def initialize(lhs, rhs, op)
@@ -327,14 +344,15 @@ end
 # Node for assignment, stores a name and a value (node).
 class AssignmentNode
   def initialize(var, value, outer = false)
-    @value, @outer, @c_scope = value, outer, nil
+    @var, @value, @outer, @c_scope = var value, outer, nil
     if var.class == BracketCallNode
       @name = var
       @array = true
+    # TODO: Possibly not needed anymore?
     elsif var.class == MemberNode
       @instance = var.instance  #class instance
       @name = var.name          #name of var
-      @c_scope = true           #change scope in eval.
+      @c_scope = true           # change scope in eval.
     else
       @name = var.name
     end
@@ -342,8 +360,15 @@ class AssignmentNode
 
   def evaluate(scope)
 
-    scope = scope.get_var(@instance.name) if @c_scope
-
+    if @var.class == MemberNode
+      while @var.member.class == MemberNode
+        scope = scope.get_var(@var.instance.name)
+        @var = @var.member
+      end
+      @instance = @var.instance
+      @name = @var.name
+      scope = scope.get_var(@instance.name)
+    end
     if @array
       @name.set(scope, @value)
       [:ok, @value.evaluate(scope)[1]]
@@ -410,8 +435,8 @@ end
 
 # For arithmetic operations with only one operand, such as "a++"
 class UnaryExprNode
-  def initialize(val, op, after)
-    @val, @op, @after = val, op, after
+  def initialize(val, op, after, outer = false)
+    @val, @op, @after, @outer = val, op, after, outer
   end
 
   def evaluate(scope)
@@ -420,9 +445,20 @@ class UnaryExprNode
     when '-'
       return [:ok, -val]
     when '++', '--'
-      scope.set_var(@val.name, val.send(@op[0], 1))
+      scope.set_var(@val.name, val.send(@op[0], 1), @outer)
       return [:ok, @after ? val : @val.evaluate(scope)[1]]
     end
+  end
+end
+
+# Node for negation expression e.g. !true
+class NegationNode
+  def initialize(val)
+    @val = val
+  end
+
+  def evaluate(scope)
+    [:ok, !@val.evaluate(scope)[1]]
   end
 end
 

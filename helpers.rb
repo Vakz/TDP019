@@ -10,3 +10,12 @@ def for_statement_handler(body, assignment: nil, \
   cond: ConditionNode.new(ConstantNode.new(true)), inc: ConstantNode.new(nil))
   ForNode.new(cond, inc, BlockNode.new(body), assignment)
 end
+
+def find_correct_scope(member_node)
+  puts member_node.inspect
+  if member_node.member.class == MemberNode
+    return find_correct_scope(member_node.member)
+  end
+  puts member_node.inspect
+  member_node.instance
+end

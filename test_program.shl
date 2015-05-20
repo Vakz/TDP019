@@ -1,7 +1,9 @@
-#>several
-  lines
-  commented
-  out<#
+a = 1;
+pl(a);
+@func()
+{
+  --^a;
+}
 
-a = "asd";
-pl(a.times(2));
+func();
+pl(a);
