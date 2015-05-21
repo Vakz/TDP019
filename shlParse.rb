@@ -45,7 +45,6 @@ class SHLParse
       end
 
       rule :expr do
-        match('(', :expr, ')')
         match(:assignment)
         match(:conversion)
         match(:bool_expr)
@@ -55,6 +54,7 @@ class SHLParse
         match(:identifier)
         match(:type)
         match('!', :expr) { |_, b| NegationNode.new(b) }
+        match('(', :expr, ')')
       end
 
       rule :unary_expr do
@@ -263,7 +263,6 @@ class SHLParse
       end
 
       rule :arith_expr do
-        match('(', :arith_expr, ')')
         match(:arith_expr, :arith_op, :term) do |a, op, b|
           ArithmeticNode.new(a, b, op)
         end
@@ -281,6 +280,9 @@ class SHLParse
 
       rule :term do
         match(:term, :term_op, :pow) do |a, op, b|
+          ArithmeticNode.new(a, b, op)
+        end
+        match(:pow, :term_op, :term) do |a, op, b|
           ArithmeticNode.new(a, b, op)
         end
         match(:pow)

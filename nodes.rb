@@ -23,7 +23,7 @@ class Scope
     elsif @upper != nil
       result = @upper.get_var(name)
     else
-      result = nil
+      result = :notfound
     end
     result
   end
@@ -389,7 +389,7 @@ class VariableNode
 
   def evaluate(scope)
     value = scope.get_var(@name)
-    if !value.nil?
+    if value != :notfound
       return [:ok, value]
     else
       fail "Error: no variable \"#{@name}\" found."

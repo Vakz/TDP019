@@ -4,7 +4,7 @@ require_relative './shl_tester'
 class IfTests < SHLTester
 
   def initialize f
-    super(f, "if_test_files")
+    super(f, 'if_test_files')
   end
 
   def test_simple_ifs
