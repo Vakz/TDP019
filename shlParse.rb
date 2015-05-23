@@ -49,8 +49,8 @@ class SHLParse
         match(:conversion)
         match(:bool_expr)
         match(:comparison)
-        match(:arith_expr)
         match(:expr_call)
+        match(:arith_expr)
         match(:identifier)
         match(:type)
         match('!', :expr) { |_, b| NegationNode.new(b) }
@@ -218,7 +218,9 @@ class SHLParse
       end
 
       rule :identifier do
-        match(:identifier, '.', :identifier) { |i1, _, i2| MemberNode.new(i1,i2) }
+
+        match(:identifier, '.', :identifier) { |i1, _, i2| MemberNode.new(i1, i2) }
+        match(:type, '.', :identifier) { |i1, _, i2| MemberNode.new(i1, i2) }
         # TODO: Allow for direct values and not just identifiers
         match(:identifier, '[', :value, ']') { |n, _, t, _| BracketCallNode.new(n, t) }
         match(:name) { |n| VariableNode.new(n) }

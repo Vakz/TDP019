@@ -1,1 +1,17 @@
-pl(1-1-1);
+pl("asd".times(3));
+pl("fasd".times(3));
+!F()
+{
+  @func()
+  {
+    <- 2;
+  }
+}
+
+!T()
+{
+  a = F();
+}
+
+b = T();
+pl(b.a.func());

@@ -18,6 +18,7 @@ class ClassTests < SHLTester
     assert_equal(2, load_and_run('simple_member_func.shl'))
     assert_equal(2, load_and_run('parallell_func_call.shl'))
     assert_equal(2, load_and_run('function_call_in_def.shl'))
+    assert_equal(2, load_and_run('nested_def_call.shl'))
   end
 
   def test_arguments

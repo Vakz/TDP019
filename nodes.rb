@@ -136,32 +136,33 @@ class CallNode
   end
 
   def evaluate(scope)
-    if @node.class == MemberNode
-      # Check type of variable thats accessing a member, if its not a Scope
-      # then only builtin functions for string/array/hash can be called.
+    params = @params.inject([]) { |a, e| a << e.evaluate(scope)[1] }
+    if @node.class == VariableNode && Builtins::General.key?(@node.name)
+      return [:ok, Builtins::General[@node.name].call(*params)]
+    end
 
-      type = @node.get_type(scope)
-      hash = { String => Builtins::String,
-               Array => Builtins::Array,
-               Hash => Builtins::Hash
-              }[type]
-
-      params = @params.inject([]) { |a, e| a << e.evaluate(scope)[1] }
-      x = scope.get_var(@node.instance.name)
-      if type == Scope
-        # change scope to the class scope.
-        scope = scope.get_var(@node.instance.name)
-      elsif [String, Array, Hash].include? type
-        if hash.key?(@node.member.name)
-          return [:ok, hash[@node.member.name].call(x, *params)]
-        else
-          fail "Error: no method \"#{@node.member.name}\" for type \"#{type}\" found."
+    if @node.is_a? MemberNode
+      n = @node
+      s = scope
+      while n.member.class == MemberNode
+        s = s.get_var(n.instance.name)
+        n = n.member
+      end
+      if n.instance.is_a? ConstantNode
+        return call_builtin(n, params, s)
+      elsif n.instance.is_a? VariableNode
+        val = n.instance.evaluate(s)[1]
+        unless val.is_a? Scope
+          val = MemberNode.new(ConstantNode.new(val), n.member)
+          return call_builtin(val, params, s)
         end
       end
-    else
-      if Builtins::General.key?(@node.name)
-        params = @params.inject([]) { |a, e| a << e.evaluate(scope)[1] }
-        return [:ok, Builtins::General[@node.name].call(*params)]
+    end
+    if @node.class == MemberNode
+      scope = scope.get_var(@node.instance.name)
+      while @node.member.class == MemberNode
+        scope = scope.get_var(@node.name)
+        @node = @node.member
       end
     end
 
@@ -180,11 +181,15 @@ class MemberNode
 
   def initialize(instance, member)
     @instance, @member = instance, member
-    @name = @member.name
+    if @member.is_a? MemberNode
+      @name = member.instance.name
+    else
+      @name = member.name
+    end
   end
 
   def evaluate(scope)
-
+    return @instance.evaluate(scope) if @instance.class == ConstantNode
     instance_scope = scope.get_var(@instance.name)
     @member.evaluate(instance_scope)
   end
@@ -359,12 +364,8 @@ class AssignmentNode
   end
 
   def evaluate(scope)
-
     if @var.class == MemberNode
-      while @var.member.class == MemberNode
-        scope = scope.get_var(@var.instance.name)
-        @var = @var.member
-      end
+      @var = get_correct_scope(@var, scope)
       @instance = @var.instance
       @name = @var.name
       scope = scope.get_var(@instance.name)
