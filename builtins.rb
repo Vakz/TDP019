@@ -30,10 +30,17 @@ module HashFuncs
   end
 end
 
+module IntegerFuncs
+  def self.is_even(int)
+    int.even?
+  end
+end
+
 module Builtins
   General = { 'p' => GeneralFuncs.method(:p),
               'pl' => GeneralFuncs.method(:pl) }
   String = { 'times' => StringFuncs.method(:times) }
   Array = { 'includes' => ArrayFuncs.method(:includes) }
   Hash = { 'has_key' => HashFuncs.method(:has_key) }
+  Fixnum = { 'is_even' => IntegerFuncs.method(:is_even) }
 end

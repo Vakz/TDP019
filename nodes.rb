@@ -148,7 +148,7 @@ class CallNode
         s = s.get_var(n.instance.name)
         n = n.member
       end
-      if n.instance.is_a? ConstantNode
+      if [ConstantNode, ArrayNode, HashNode].include? n.instance.class
         return call_builtin(n, params, s)
       elsif n.instance.is_a? VariableNode
         val = n.instance.evaluate(s)[1]
@@ -189,7 +189,9 @@ class MemberNode
   end
 
   def evaluate(scope)
-    return @instance.evaluate(scope) if @instance.class == ConstantNode
+    if [ConstantNode, ArrayNode, HashNode].include? @instance.class
+      return @instance.evaluate(scope)
+    end
     instance_scope = scope.get_var(@instance.name)
     @member.evaluate(instance_scope)
   end

@@ -1,3 +1,4 @@
+#!/usr/bin/ruby
 require_relative './shl_tester'
 
 class VariableTests < SHLTester

@@ -24,7 +24,8 @@ def call_builtin(var, params, scope)
   c = var.evaluate(scope)[1].class
   hash = { String => Builtins::String,
            Array => Builtins::Array,
-           Hash => Builtins::Hash
+           Hash => Builtins::Hash,
+           Fixnum => Builtins::Fixnum
           }[c]
   if !hash.nil? && hash.key?(var.member.name)
     return [:ok, hash[@node.member.name].call(val, *params)]
