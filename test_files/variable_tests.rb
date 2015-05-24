@@ -30,5 +30,6 @@ class VariableTests < SHLTester
 
   def test_scopes
     assert_equal(2, load_and_run('outer_scope.shl'))
+    assert_equal(2, load_and_run('outer_and_local_scope.shl'))
   end
 end

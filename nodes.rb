@@ -18,9 +18,9 @@ class Scope
 
   # recursively get variables through upper scopes if not found
   def get_var(name)
-    if @vars.has_key?(name)
+    if @vars.key?(name)
       result = @vars[name]
-    elsif @upper != nil
+    elsif !@upper.nil?
       result = @upper.get_var(name)
     else
       result = :notfound
@@ -355,11 +355,6 @@ class AssignmentNode
     if var.class == BracketCallNode
       @name = var
       @array = true
-    # TODO: Possibly not needed anymore?
-    elsif var.class == MemberNode
-      @instance = var.instance  #class instance
-      @name = var.name          #name of var
-      @c_scope = true           # change scope in eval.
     else
       @name = var.name
     end
@@ -368,8 +363,7 @@ class AssignmentNode
   def evaluate(scope)
     if @var.class == MemberNode
       @var = get_correct_scope(@var, scope)
-      @instance = @var.instance
-      @name = @var.name
+      @instance, @name = @var.instance, @var.name
       scope = scope.get_var(@instance.name)
     end
     if @array
