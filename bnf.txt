@@ -2,6 +2,7 @@ Fredrik Jonsén - frejo105
 Daniel Eriksson - daner045
 
 BNF-GRAMMAR
+Optional parts are enclosed in brackets [ ]
 
 <begin> ::= <stmt_list>
 
@@ -17,18 +18,21 @@ BNF-GRAMMAR
          | '!->' ';'         # continue
          | '->!' ';'         # break
 
-<expr> ::= '(' <expr> ')'
-         | <assignment>
+<expr> ::= <assignment>
          | <conversion>
-         | <unary_op> <expr>
-         | <expr> <unary_op>
          | <bool_expr>
          | <comparison>
-         | <arith_expr>
          | <expr_call>
+         | <arith_expr>
          | <identifier>
-         | <type>
+         | type
          | '!' <expr>
+         | '(' <expr> ')'
+
+<unary_expr> ::= <unary_op> ['^'] <identifier>
+               | ['^'] <identifier> <unary_op>
+
+<unary_op> ::= '++' | '--'
 
 <conversion> ::= <identifier> '->' <type_dec>
 
@@ -38,7 +42,7 @@ BNF-GRAMMAR
 
 <expr_call> ::= <identifier> '(' [<arg_list>] ')'
 
-<if_stmt> ::= '~i' <expr> <cond_body> [<elseif_list>] [~e <cond_body>]
+<if_stmt> ::= '~i' <expr> <cond_body> [<elseif_list>]['~e' <cond_body>]
 
 <elseif_list> ::= [<elseif_list>] <elseif>
 
@@ -64,17 +68,18 @@ BNF-GRAMMAR
 
 <param_def_list> ::= <identifier> '=' <expr> [',' <param_def_list>]
 
-<class_def> ::= '§' <identifier> { <stmt_list> }
+<class_def> ::= '!' <identifier> ['(' [<param_list>] ')'] '{' <stmt_list> '}'
 
-<function_def> ::= '@' <identifier> '(' [<param_list>] ')' '{' <stmt_list> '}'
+<function_def> ::= '@' <identifier> ['(' [<param_list>] ')'] '{' <stmt_list> '}'
+
+<value> ::= <type> | <identifier>
 
 <identifier> ::= <identifier> '.' <identifier>
-               | <identifier> '[' <identifier> | <type> ']'
+               | <type> '.' <identifier>
+               | <identifier> '[' <value> ']'
                | <name>
 
 <name> ::= /[\wÅÄÖåäö][\w\d_åäöÅÄÖ]*/
-
-<unary_op> ::= '++' | '--'
 
 <comp_op> ::= '==' | '<=' | '>=' | '!=' | '<' | '>'
 
@@ -84,21 +89,21 @@ BNF-GRAMMAR
 
 <arith_op> ::= '+' | '-'
 
-<arith_expr> ::= '(' <arith_expr ')'
-               | <arith_expr> <arith_op> <term>
+<arith_expr> ::= <arith_expr> <arith_op> <term>
                | <term> <arith_op> <term>
                | <term>
 
 <term_op> ::= '//' | '*' | '/'
 
 <term> ::= <term> <term_op> <pow>
+         | <pow> <term_op> <term>
          | <pow>
 
 <pow> ::= <pow> '**' <factor>
-        | <factor>
 
-<factor> ::= '-' <factor>
-           | '(' <arith_expr> ')'
+<factor> ::= '(' <arith_expr> ')'
+           | '-' <term>
+           | <unary_expr>
            | <type>
            | <expr_call>
            | <identifier>
@@ -115,7 +120,11 @@ BNF-GRAMMAR
 
 <hash_arg_list> ::= <hash_arg> [',' <hash_arg_list>]
 
-<hash_arg> ::= [<identifier> | <type>] ':' <expr>
+<hash_arg> ::= <value> ':' <value>
+
+<hash> ::= '{' [<hash_arg_list>] '}'
+
+<array> ::= '[' <arg_list> ']'
 
 <hash> ::= '{' [<hash_arg_list>] '}'
 

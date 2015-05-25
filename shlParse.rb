@@ -221,7 +221,6 @@ class SHLParse
 
         match(:identifier, '.', :identifier) { |i1, _, i2| MemberNode.new(i1, i2) }
         match(:type, '.', :identifier) { |i1, _, i2| MemberNode.new(i1, i2) }
-        # TODO: Allow for direct values and not just identifiers
         match(:identifier, '[', :value, ']') { |n, _, t, _| BracketCallNode.new(n, t) }
         match(:name) { |n| VariableNode.new(n) }
       end
