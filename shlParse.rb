@@ -395,7 +395,8 @@ end
 
 if __FILE__ == $PROGRAM_NAME
   sp = SHLParse.new
-  f = File.read ARGV[0].nil? ? 'test_program.shl' : ARGV[0]
+  fail 'Usage: shlParse.rb <file>' if ARGV[0].nil?
+  f = File.read ARGV[0]
   sp.log(false)
   program = sp.parse f
   program.evaluate
